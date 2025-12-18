@@ -176,3 +176,39 @@ Address Dr. Duy’s "Why" – Why this course over another? Eliminate user confu
 - [x] Added "What you will build" section.
 - [x] Added "Compare" interaction toggle.
 - [x] Documented design rationale in `development_history.md`.
+
+## Step 5: User Journey & Landing Page (Entry Point)
+
+### Goal
+Create a seamless entry point that guides the user from discovery (Search) to learning (Dashboard), fulfilling the "Logical Sequence" requirement.
+
+### Architectural Decisions
+
+1.  **Landing Page Strategy**:
+    *   **Hero Section**: Reused `HeroSearch` to maintain focus on the primary action (searching/prompting).
+    *   **Value Proposition**: Added "Recommended for You" to simulate AI personalization immediately upon arrival.
+    *   **Visuals**:
+        *   **Background**: Deep gradients (Indigo/Cyan) to establish the "Deep Sea" theme.
+        *   **Layout**: Clean, centered hero with a grid of `CourseCard`s below.
+
+2.  **Routing Logic (Simple State)**:
+    *   **Approach**: Used React state (`currentView`) in `App.tsx` to switch between `LandingPage` and `LearningDashboard`.
+    *   **Why**: Keeps the architecture simple for the prototype phase without needing a full router (like `react-router-dom`) yet, while still demonstrating the flow.
+    *   **Flow**: User clicks a course -> State updates -> View switches to Dashboard.
+
+### Component Structure
+
+*   `src/components/LandingPage.tsx`:
+    *   **Role**: The main entry component.
+    *   **Composition**: Composes `HeroSearch` and a grid of `CourseCard`s.
+    *   **Props**: `onCourseSelect` callback to trigger the view switch.
+*   `src/App.tsx`:
+    *   **Role**: Root orchestrator.
+    *   **State**: `currentView` ('landing' | 'dashboard').
+    *   **Logic**: Conditionally renders the appropriate view based on state.
+
+### Progress
+- [x] Created `LandingPage.tsx` with Hero and Recommended sections.
+- [x] Integrated `HeroSearch` and `CourseCard` into the landing page.
+- [x] Updated `App.tsx` to handle basic navigation/view switching.
+- [x] Documented the user journey implementation in `development_history.md`.
