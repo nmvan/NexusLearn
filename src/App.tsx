@@ -97,7 +97,7 @@ function AppContent() {
   const videoSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
   const isLanding = location.pathname === '/';
-  const isDashboard = location.pathname === '/dashboard';
+  const isDashboard = location.pathname.startsWith('/dashboard');
 
   const handleCourseSelect = (courseId: string) => {
     console.log(`Selected course: ${courseId}`);
@@ -106,10 +106,10 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50">
-      {!isDashboard && <Header />}
+      <Header />
       
       <main>
-        {!isLanding && (
+        {!isLanding && !isDashboard && (
           <VideoPlayer 
             src={videoSrc} 
             forcePip={!isDashboard} 
@@ -119,7 +119,7 @@ function AppContent() {
 
         <Routes>
           <Route path="/" element={<LandingPage onCourseSelect={handleCourseSelect} courses={MOCK_COURSES} />} />
-          <Route path="/dashboard" element={<LearningDashboard />} />
+          <Route path="/dashboard/*" element={<LearningDashboard />} />
           <Route path="/subscription" element={<SubscriptionManagement />} />
           <Route path="/notes" element={<NoteCentral />} />
           <Route path="/my-courses" element={<MyCourses />} />
