@@ -99,6 +99,35 @@ Address "Spam" and "Abandonment" issues by replacing intrusive emails with an in
 3.  **Data Flow**:
     *   `LearningDashboard` manages state (current time, notes, chat history).
 
+## Step 6: Enhanced Video Interaction & Multi-Tasking (Contextual Sync)
+
+### Goal
+Deepen the integration between the Video Player, AI Sidebar, and Note-Taking system to support seamless multi-tasking and context preservation.
+
+### Changes
+
+1.  **Global Video Context (`VideoContext`)**:
+    *   Lifted video state management to a global context provider (`VideoProvider`).
+    *   Allows any component (Sidebar, Notes, Dashboard) to control playback (seek, play/pause) and access current time.
+    *   Eliminates prop drilling and ensures video state persists across view changes.
+
+2.  **Contextual Sync (AISidebar -> Video)**:
+    *   Added "Jump to timestamp" buttons in AI messages.
+    *   Clicking a timestamp in the chat history instantly seeks the video to that point.
+    *   Ensures users can easily verify AI explanations against the source material.
+
+3.  **Smart Note-Taking (Deep Linking)**:
+    *   Notes saved from the AI Sidebar now include a clickable timestamp.
+    *   In `NoteCentral`, clicking the timestamp on a saved note seeks the video to the exact moment the note was taken.
+    *   Supports the "Review" phase of learning by connecting notes back to the lecture.
+
+4.  **Robust Picture-in-Picture (PIP)**:
+    *   Implemented a "Global Video Player" architecture in `App.tsx`.
+    *   **Automatic PIP**: When navigating away from the Dashboard (e.g., to NoteCentral or Roadmap), the video player automatically detaches and becomes a floating mini-player.
+    *   **Portal-based Rendering**: Uses React Portals to seamlessly move the video player between the Dashboard layout (embedded) and the global overlay (PIP) without unmounting or losing playback state.
+    *   Prevents "Context Switching" fatigue by allowing users to manage notes or view the roadmap while continuing to listen to the lecture.
+
+
 ## Step 6: Codebase Standardization & Mock Data Integration
 
 ### Goal
@@ -405,6 +434,99 @@ Develop a centralized view for managing notes collected from the AI Sidebar, add
 - [x] Created `NoteCentral` view with Export and Summarize features.
 - [x] Integrated `NoteCentral` into the main navigation.
 - [x] Documented changes in `development_history.md`.
-The AT command has been deprecated. Please use schtasks.exe instead.
 
-The request is not supported.
+## Step 10: Mock Data Enhancement for Realism
+
+### Goal
+Update `MOCK_COURSES` to simulate real-world search issues like "Decision Paralysis" and stale content, enabling better testing of filtering and comparison features.
+
+### Changes
+1.  **Data Variety**:
+    *   Created 5 courses with similar titles (e.g., 'React Mastery', 'React for Professionals') to mimic search result clutter.
+    *   Varied `matchScore` (98%, 75%, 45%) to test AI relevance sorting.
+    *   Varied `lastUpdated` dates ('2 days ago' to '4 years ago') to highlight the need for freshness filtering.
+
+2.  **Data Structure**:
+    *   Added a `level` field ('Beginner', 'Intermediate', 'Advanced') to `CourseCardProps` and `MOCK_COURSES` to support future difficulty filtering.
+    *   Updated `whatYouWillBuild` with specific, tangible projects (e.g., 'Real-time Trading Dashboard') instead of generic descriptions.
+
+3.  **Files Modified**:
+    *   `src/components/CourseCard.tsx`: Added `level` to `CourseCardProps`.
+    *   `src/App.tsx`: Updated `MOCK_COURSES` with the new dataset.
+
+## Step 11: Advanced Metadata & Smart Comparison (Decision Paralysis)
+
+### Goal
+Solve "Decision Paralysis" by providing transparent, data-driven comparisons and highlighting freshness.
+
+### Changes
+1.  **Data Expansion**:
+    *   Added `language`, `isBeginnerFriendly`, `detailedRating`, and `price` to the `Course` interface and mock data.
+    *   This ensures users have all critical decision-making factors available at a glance.
+
+2.  **UI Update (CourseCard)**:
+    *   Added badges for "Beginner Friendly" and specific languages (e.g., "Vietnamese Sub").
+    *   This allows users to instantly identify courses that match their constraints.
+
+3.  **Smart Comparison Logic**:
+    *   Enhanced `ComparisonModal` to display a comprehensive comparison table.
+    *   Added rows for **Price**, **Rating**, **Language**, and **Level**.
+    *   **AI Highlight**: Implemented logic to automatically highlight the course with the **most recent update** (freshness).
+        *   *Logic*: The system parses `lastUpdated` strings (e.g., "2 days ago") into days and identifies the minimum value.
+        *   *Why*: In fast-moving tech fields (like React), "staleness" is a major fear. Highlighting the freshest content gives users confidence they aren't learning deprecated patterns.
+
+### Why these features solve 'Decision Paralysis'
+*   **Transparency**: By exposing "hidden" factors like update frequency and language support upfront, we remove the "what if" doubts that stall decisions.
+*   **Cognitive Offloading**: The floating comparison bar and modal allow users to compare options side-by-side, eliminating the need to open multiple tabs and rely on working memory.
+*   **Trust**: Highlighting "Freshness" and "Beginner Friendliness" directly addresses specific user anxieties about relevance and difficulty.
+
+## Step 12: Cognitive Load Reduction & AI-First Controls
+
+### Goal
+Reduce cognitive load for users by introducing pre-filtering options and AI-assisted decision making directly in the Hero section.
+
+### Changes
+1.  **Beginner Toggle**:
+    *   Added a "Beginner Friendly" toggle switch in `HeroSearch`.
+    *   **Logic**: When active, it filters the course list in `LandingPage` to show only courses marked as `isBeginnerFriendly`.
+    *   **Visuals**: Uses a cyan glow to align with the "AI-First" theme and provide clear feedback.
+
+2.  **AI Comparison Trigger**:
+    *   Added an "AI Compare" button in `HeroSearch`.
+    *   **Logic**: Automatically selects the top 3 courses based on `matchScore` and opens the comparison modal.
+    *   **Benefit**: Removes the friction of manually selecting courses, leveraging the system's "intelligence" to suggest the best options immediately.
+
+3.  **Files Modified**:
+    *   `src/components/LandingPage.tsx`: Added state for beginner mode and logic for AI comparison.
+    *   `src/components/HeroSearch.tsx`: Added UI controls for the toggle and button.
+
+## Step 13: Personalized AI Study Plan (Roadmap)
+
+### Goal
+Prevent "Course Abandonment" by replacing static lesson lists with a dynamic, goal-oriented roadmap that adapts to the user's pace and objectives.
+
+### Changes
+1.  **Dynamic Roadmap Sidebar**:
+    *   Replaced the static lesson list with a `DynamicRoadmap` component.
+    *   **Visuals**: Displays modules as a connected path (step-by-step journey) rather than a disconnected list.
+    *   **Progress Tracking**: Integrated "Pulse Bar" logic into the current step to draw attention and encourage action (Zeigarnik Effect).
+
+2.  **AI Goal Setting**:
+    *   Implemented `AIGoalModal` that appears on first load.
+    *   Prompts the user: "What is your goal? (e.g., Finish in 1 week)".
+    *   **Why**: Commitment consistency principle—users are more likely to stick to a plan they explicitly set themselves.
+
+3.  **Daily Targets & Adjustments**:
+    *   The roadmap highlights specific modules as "Daily Targets" based on the user's goal.
+    *   This breaks down a daunting course into manageable, bite-sized chunks, reducing overwhelm.
+
+4.  **Learning Profile Integration**:
+    *   Added `LearningProfileCard` to the sidebar.
+    *   Displays the user's specific path (e.g., "Aggressive Pace") and estimated completion date.
+    *   **Benefit**: Provides a clear "finish line" visualization, motivating users to maintain their streak.
+
+### How this prevents Abandonment
+*   **Personalization**: Users feel the course is tailored to *their* schedule, not a generic one-size-fits-all curriculum.
+*   **Micro-Goals**: "Daily Targets" provide frequent dopamine hits upon completion, keeping engagement high.
+*   **Visual Progress**: The connected path and pulse animations make progress tangible and satisfying.
+

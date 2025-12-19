@@ -15,6 +15,7 @@ interface LandingPageProps {
 export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
 
   const handleCompareToggle = (courseId: string, checked: boolean) => {
     if (checked) {
@@ -28,6 +29,17 @@ export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
       setSelectedCourseIds(prev => prev.filter(id => id !== courseId));
     }
   };
+
+  const handleAICompare = () => {
+    const sortedCourses = [...courses].sort((a, b) => b.matchScore - a.matchScore);
+    const top3 = sortedCourses.slice(0, 3);
+    setSelectedCourseIds(top3.map(c => c.id));
+    setIsComparisonOpen(true);
+  };
+
+  const displayedCourses = isBeginnerMode 
+    ? courses.filter(c => c.isBeginnerFriendly)
+    : courses;
 
   const selectedCourses = courses.filter(c => selectedCourseIds.includes(c.id));
 
@@ -56,7 +68,11 @@ export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
             Stop wasting time on generic courses. Get a personalized curriculum tailored to your goals, skills, and learning style.
           </p>
 
-          <HeroSearch />
+          <HeroSearch 
+            isBeginnerMode={isBeginnerMode}
+            setIsBeginnerMode={setIsBeginnerMode}
+            onAICompare={handleAICompare}
+          />
         </div>
       </div>
 
@@ -73,7 +89,7 @@ export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
+          {displayedCourses.map((course) => (
             <div 
               key={course.id} 
               onClick={() => onCourseSelect(course.id)}

@@ -1,54 +1,54 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Maximize2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useVideo } from '../context/VideoContext';
 
 interface VideoPlayerProps {
   src: string;
-  onTimeUpdate: (currentTime: number) => void;
   className?: string;
+  forcePip?: boolean;
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, className }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className, forcePip = false }) => {
+  const { 
+    isPlaying, 
+    isMuted, 
+    togglePlay, 
+    toggleMute, 
+    handleTimeUpdate: onTimeUpdate, 
+    registerVideoRef,
+    seekTo
+  } = useVideo();
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isPip, setIsPip] = useState(false);
+  const [isScrollPip, setIsScrollPip] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [domReady, setDomReady] = useState(false);
 
-  // Handle scroll for auto-PIP
+  useEffect(() => {
+    setDomReady(true);
+    if (videoRef.current) {
+        registerVideoRef(videoRef);
+    }
+  }, [registerVideoRef]);
+
+  // Handle scroll for auto-PIP (only if not forced)
   useEffect(() => {
     const handleScroll = () => {
-      if (containerRef.current) {
+      if (containerRef.current && !forcePip) {
         const rect = containerRef.current.getBoundingClientRect();
-        // If the bottom of the video container is above the top of the viewport, enable PIP
-        // We add a small buffer (e.g., 100px) to make it feel natural
         const shouldBePip = rect.bottom < 0;
-        setIsPip(shouldBePip);
+        setIsScrollPip(shouldBePip);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [forcePip]);
 
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
+  const isPip = forcePip || isScrollPip;
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
@@ -61,65 +61,61 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, cla
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const seekTime = (parseFloat(e.target.value) / 100) * (videoRef.current?.duration || 0);
-    if (videoRef.current) {
-      videoRef.current.currentTime = seekTime;
-      setProgress(parseFloat(e.target.value));
-    }
+    seekTo(seekTime);
+    setProgress(parseFloat(e.target.value));
   };
 
-  return (
-    <>
-      {/* Placeholder to hold space when in PIP mode */}
-      <div ref={containerRef} className={cn("relative aspect-video bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-800", className)}>
-        {!isPip && (
-          <div className="absolute inset-0 flex items-center justify-center">
-             {/* Main Video Rendered Here when NOT in PIP */}
-             <VideoContent 
-                videoRef={videoRef}
-                src={src}
-                isPlaying={isPlaying}
-                isMuted={isMuted}
-                handleTimeUpdate={handleTimeUpdate}
-                togglePlay={togglePlay}
-                toggleMute={toggleMute}
-                progress={progress}
-                handleSeek={handleSeek}
-             />
-          </div>
-        )}
-        {/* If PIP is active, we still keep the container to maintain layout flow, but it's empty or shows a placeholder */}
-        {isPip && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50">
-                <span className="text-slate-500">Playing in Mini-player...</span>
-            </div>
-        )}
-      </div>
+  const VideoContentElement = (
+    <VideoContent 
+        videoRef={videoRef}
+        src={src}
+        isPlaying={isPlaying}
+        isMuted={isMuted}
+        handleTimeUpdate={handleTimeUpdate}
+        togglePlay={togglePlay}
+        toggleMute={toggleMute}
+        progress={progress}
+        handleSeek={handleSeek}
+        isPipMode={isPip}
+        onClosePip={() => {
+            if (forcePip) {
+                // Cannot close forced PIP (it's view-dependent)
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }}
+    />
+  );
 
-      {/* PIP Video Portal - Rendered Fixed if isPip is true */}
-      {isPip && (
+  const dashboardAnchor = typeof document !== 'undefined' ? document.getElementById('dashboard-video-anchor') : null;
+
+  if (!domReady) return null;
+
+  if (isPip) {
+      return createPortal(
         <div className="fixed bottom-6 right-6 w-80 aspect-video bg-slate-900 rounded-lg shadow-2xl border border-indigo-500/30 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
-             <VideoContent 
-                videoRef={videoRef}
-                src={src}
-                isPlaying={isPlaying}
-                isMuted={isMuted}
-                handleTimeUpdate={handleTimeUpdate}
-                togglePlay={togglePlay}
-                toggleMute={toggleMute}
-                progress={progress}
-                handleSeek={handleSeek}
-                isPipMode={true}
-                onClosePip={() => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-             />
-        </div>
-      )}
-    </>
+            {VideoContentElement}
+        </div>,
+        document.body
+      );
+  }
+
+  if (dashboardAnchor) {
+      return createPortal(
+          <div ref={containerRef} className={cn("relative aspect-video bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-800", className)}>
+              {VideoContentElement}
+          </div>,
+          dashboardAnchor
+      );
+  }
+
+  return (
+      <div className="hidden">
+          {VideoContentElement}
+      </div>
   );
 };
 
-// Helper component to avoid code duplication
 const VideoContent = ({ 
     videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, onClosePip 
 }: any) => (
@@ -129,7 +125,6 @@ const VideoContent = ({
             src={src}
             className="w-full h-full object-cover"
             onTimeUpdate={handleTimeUpdate}
-            autoPlay={isPlaying} // Maintain state when switching modes
             muted={isMuted}
             loop
         />

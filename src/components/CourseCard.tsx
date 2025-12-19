@@ -1,4 +1,4 @@
-import { Clock, Calendar, CheckSquare, Sparkles, ArrowRight } from 'lucide-react';
+import { Clock, Calendar, CheckSquare, Sparkles, ArrowRight, Globe, ThumbsUp } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export interface CourseCardProps {
@@ -10,6 +10,11 @@ export interface CourseCardProps {
   lastUpdated: string;
   timeCommitment: string; // e.g., "5 hours/week"
   whatYouWillBuild: string[];
+  level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  language?: string;
+  isBeginnerFriendly?: boolean;
+  detailedRating?: number;
+  price?: number;
   isSelectedForComparison?: boolean;
   onCompareToggle?: (id: string, checked: boolean) => void;
   className?: string;
@@ -24,6 +29,8 @@ export function CourseCard({
   lastUpdated,
   timeCommitment,
   whatYouWillBuild,
+  language,
+  isBeginnerFriendly,
   isSelectedForComparison = false,
   onCompareToggle,
   className,
@@ -79,6 +86,18 @@ export function CourseCard({
             <Clock className="h-3.5 w-3.5 text-slate-500" />
             <span>{timeCommitment}</span>
           </div>
+          {language && (
+            <div className="flex items-center gap-1.5 rounded-md bg-slate-800/50 px-2 py-1">
+              <Globe className="h-3.5 w-3.5 text-slate-500" />
+              <span>{language}</span>
+            </div>
+          )}
+          {isBeginnerFriendly && (
+            <div className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-1 text-emerald-400 border border-emerald-500/20">
+              <ThumbsUp className="h-3.5 w-3.5" />
+              <span>Beginner Friendly</span>
+            </div>
+          )}
         </div>
 
         {/* Outcome-Oriented Section */}

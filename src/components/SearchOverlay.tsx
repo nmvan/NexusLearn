@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Sparkles, ArrowRight, BookOpen } from 'lucide-react';
+import { Search, X, Sparkles, ArrowRight, BrainCircuit } from 'lucide-react';
+import { CourseCard, type CourseCardProps } from './CourseCard';
+import { ComparisonModal } from './ComparisonModal';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -14,10 +16,78 @@ const SUGGESTIONS = [
   "Best design patterns for React"
 ];
 
+const MOCK_COURSES: CourseCardProps[] = [
+  {
+    id: 's1',
+    title: 'Complete Python Bootcamp: Go from zero to hero in Python 3',
+    instructor: 'Jose Portilla',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/567828_67d0.jpg',
+    matchScore: 98,
+    lastUpdated: '2 days ago',
+    timeCommitment: '22 hours total',
+    whatYouWillBuild: ['Tic Tac Toe', 'Blackjack', 'Web Scraper'],
+    level: 'Beginner',
+    language: 'Python',
+    isBeginnerFriendly: true,
+    detailedRating: 4.8,
+    price: 19.99
+  },
+  {
+    id: 's2',
+    title: 'Machine Learning A-Z™: AI, Python & R + ChatGPT Prize [2024]',
+    instructor: 'Kirill Eremenko',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/950390_270f_3.jpg',
+    matchScore: 95,
+    lastUpdated: '1 week ago',
+    timeCommitment: '42 hours total',
+    whatYouWillBuild: ['Data Preprocessing Template', 'Regression Models', 'Reinforcement Learning AI'],
+    level: 'Intermediate',
+    language: 'Python',
+    isBeginnerFriendly: false,
+    detailedRating: 4.7,
+    price: 24.99
+  },
+  {
+    id: 's3',
+    title: '100 Days of Code: The Complete Python Pro Bootcamp for 2024',
+    instructor: 'Dr. Angela Yu',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/2776760_f176_10.jpg',
+    matchScore: 92,
+    lastUpdated: '3 days ago',
+    timeCommitment: '60 hours total',
+    whatYouWillBuild: ['Snake Game', 'Pong', 'Blog Website'],
+    level: 'Beginner',
+    language: 'Python',
+    isBeginnerFriendly: true,
+    detailedRating: 4.9,
+    price: 22.99
+  },
+  {
+    id: 's4',
+    title: 'Python for Data Science and Machine Learning Bootcamp',
+    instructor: 'Jose Portilla',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/903744_8eb2.jpg',
+    matchScore: 88,
+    lastUpdated: '1 month ago',
+    timeCommitment: '25 hours total',
+    whatYouWillBuild: ['Data Visualizations', 'K-Means Clustering', 'Neural Networks'],
+    level: 'Intermediate',
+    language: 'Python',
+    isBeginnerFriendly: false,
+    detailedRating: 4.6,
+    price: 18.99
+  }
+];
+
 export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  
+  // New state for search results
+  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,6 +98,9 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       setQuery('');
       setIsThinking(false);
       setShowResults(false);
+      setIsBeginnerMode(false);
+      setSelectedCourseIds([]);
+      setIsComparisonOpen(false);
     }
     return () => {
       document.body.style.overflow = 'unset';
@@ -56,6 +129,29 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     }
   };
 
+  const handleCompareToggle = (courseId: string, checked: boolean) => {
+    if (checked) {
+      if (selectedCourseIds.length < 3) {
+        setSelectedCourseIds(prev => [...prev, courseId]);
+      } else {
+        alert("You can compare up to 3 courses at a time.");
+      }
+    } else {
+      setSelectedCourseIds(prev => prev.filter(id => id !== courseId));
+    }
+  };
+
+  const handleAICompare = () => {
+    if (selectedCourseIds.length < 2) return;
+    setIsComparisonOpen(true);
+  };
+
+  const displayedCourses = isBeginnerMode 
+    ? MOCK_COURSES.filter(c => c.isBeginnerFriendly)
+    : MOCK_COURSES;
+
+  const selectedCourses = MOCK_COURSES.filter(c => selectedCourseIds.includes(c.id));
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -64,24 +160,24 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
           transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
-          className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl"
+          className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl overflow-y-auto"
         >
           {/* Close Button */}
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors z-50"
           >
             <X className="w-6 h-6" />
           </button>
 
-          <div className="flex-1 flex flex-col items-center justify-start pt-20 px-4 max-w-4xl mx-auto w-full">
+          <div className="flex-1 flex flex-col items-center justify-start pt-20 px-4 max-w-7xl mx-auto w-full pb-20">
             
             {/* Search Input Area */}
             <motion.div 
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="w-full relative"
+              className="w-full max-w-4xl relative"
             >
               <div className="relative flex items-center group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
@@ -114,7 +210,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="space-y-6"
+                    className="space-y-6 max-w-4xl mx-auto"
                   >
                     <h3 className="text-muted-foreground text-sm font-medium uppercase tracking-wider ml-1">
                       Suggested Prompts
@@ -162,79 +258,78 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   </motion.div>
                 )}
 
-                {/* State 3: Results (Roadmap Card) */}
+                {/* State 3: Results (Course List) */}
                 {showResults && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="w-full"
                   >
-                    <div className="bg-card border rounded-2xl p-6 shadow-xl overflow-hidden relative">
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
-                      
-                      <div className="flex items-start justify-between mb-6">
-                        <div>
-                          <h2 className="text-2xl font-bold mb-2">Frontend Developer Roadmap</h2>
-                          <p className="text-muted-foreground">
-                            Customized for: <span className="font-medium text-foreground">"{query}"</span>
-                          </p>
-                        </div>
-                        <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-                          Estimated: 3 Months
-                        </div>
+                    {/* Controls Header */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">
+                          Search Results
+                        </h2>
+                        <p className="text-slate-400">
+                          Found {displayedCourses.length} courses for "{query}"
+                        </p>
                       </div>
 
-                      <div className="space-y-4">
-                        {[
-                          { 
-                            title: "HTML & CSS Fundamentals", 
-                            duration: "2 Weeks", 
-                            status: "Start Here",
-                            reason: "Builds the structural foundation for all web interfaces."
-                          },
-                          { 
-                            title: "JavaScript Deep Dive", 
-                            duration: "4 Weeks", 
-                            status: "Next",
-                            reason: "Essential for adding interactivity and logic to web pages."
-                          },
-                          { 
-                            title: "React & Ecosystem", 
-                            duration: "6 Weeks", 
-                            status: "Locked",
-                            reason: "Modern industry standard for building complex UIs efficiently."
-                          }
-                        ].map((step, i) => (
-                          <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer group">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background flex items-center justify-center border group-hover:border-primary transition-colors mt-1">
-                              <span className="font-bold text-muted-foreground group-hover:text-primary">{i + 1}</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <h4 className="font-semibold">{step.title}</h4>
-                                <BookOpen className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-2">{step.duration}</p>
-                              <div className="text-xs bg-background/50 p-2 rounded border border-primary/10 text-muted-foreground">
-                                <span className="font-semibold text-primary/80">Why this step?</span> {step.reason}
-                              </div>
-                            </div>
+                      <div className="flex items-center gap-4">
+                        {/* Beginner Toggle */}
+                        <div 
+                          className="flex items-center gap-3 cursor-pointer group select-none"
+                          onClick={() => setIsBeginnerMode(!isBeginnerMode)}
+                        >
+                          <div className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
+                            isBeginnerMode 
+                              ? 'bg-cyan-950/50 border border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
+                              : 'bg-slate-900/50 border border-slate-700'
+                          }`}>
+                            <motion.div 
+                              className={`absolute top-1 left-1 w-3.5 h-3.5 rounded-full shadow-sm ${
+                                isBeginnerMode ? 'bg-cyan-400 shadow-cyan-400/50' : 'bg-slate-500'
+                              }`}
+                              animate={{ x: isBeginnerMode ? 24 : 0 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            />
                           </div>
-                        ))}
-                      </div>
+                          <span className={`text-sm font-medium transition-colors ${
+                            isBeginnerMode ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300'
+                          }`}>
+                            Beginner Friendly
+                          </span>
+                        </div>
 
-                      <div className="mt-4 pt-4 border-t flex justify-end">
-                         <div className="flex items-center text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-full">
-                            <Sparkles className="w-3 h-3 mr-1 text-primary" />
-                            Generated from 12 top-rated courses
-                         </div>
-                      </div>
-
-                      <div className="mt-6 flex justify-end">
-                        <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity">
-                          Start Learning Path
+                        {/* Compare Button */}
+                        <button
+                          onClick={handleAICompare}
+                          disabled={selectedCourseIds.length < 2}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
+                            selectedCourseIds.length >= 2
+                              ? 'bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/30 text-indigo-300 hover:text-indigo-200 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)]'
+                              : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'
+                          }`}
+                        >
+                          <BrainCircuit className="w-4 h-4" />
+                          <span className="text-sm font-medium">
+                            Compare ({selectedCourseIds.length})
+                          </span>
                         </button>
                       </div>
+                    </div>
+
+                    {/* Course Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {displayedCourses.map((course) => (
+                        <CourseCard 
+                          key={course.id}
+                          {...course} 
+                          isSelectedForComparison={selectedCourseIds.includes(course.id)}
+                          onCompareToggle={handleCompareToggle}
+                        />
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -242,6 +337,13 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               </AnimatePresence>
             </div>
           </div>
+
+          {/* Comparison Modal */}
+          <ComparisonModal 
+            isOpen={isComparisonOpen}
+            onClose={() => setIsComparisonOpen(false)}
+            courses={selectedCourses}
+          />
         </motion.div>
       )}
     </AnimatePresence>

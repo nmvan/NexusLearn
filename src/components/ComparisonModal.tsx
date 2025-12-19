@@ -10,10 +10,23 @@ interface ComparisonModalProps {
 }
 
 export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalProps) {
-  // Find the course with the highest match score to highlight as AI Recommended
-  const recommendedCourse = courses.reduce((prev, current) => 
-    (prev.matchScore > current.matchScore) ? prev : current
-  , courses[0]);
+  // Helper to parse relative time to days
+  const getDaysAgo = (dateString: string): number => {
+    const value = parseInt(dateString);
+    if (dateString.includes('day')) return value;
+    if (dateString.includes('week')) return value * 7;
+    if (dateString.includes('month')) return value * 30;
+    if (dateString.includes('year')) return value * 365;
+    return 9999;
+  };
+
+  // Find the course with the best "Update-to-Price" ratio (approximated by most recent update)
+  // as per Use Case 3 requirements to avoid stale content.
+  const recommendedCourse = courses.reduce((prev, current) => {
+    const prevDays = getDaysAgo(prev.lastUpdated);
+    const currDays = getDaysAgo(current.lastUpdated);
+    return (prevDays < currDays) ? prev : current;
+  }, courses[0]);
 
   return (
     <AnimatePresence>
@@ -109,6 +122,54 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
                           course.matchScore >= 70 ? "text-cyan-400" : "text-amber-400"
                         )}>{course.matchScore}%</span>
                       </div>
+                    </div>
+                  ))}
+
+                  {/* Price Row */}
+                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
+                    Price
+                  </div>
+                  {courses.map((course) => (
+                    <div key={`price-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300 font-medium">
+                      ${course.price}
+                    </div>
+                  ))}
+
+                  {/* Rating Row */}
+                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
+                    Rating
+                  </div>
+                  {courses.map((course) => (
+                    <div key={`rating-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
+                      <div className="flex items-center gap-1">
+                        <span className="text-amber-400">★</span>
+                        <span>{course.detailedRating}</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Language Row */}
+                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
+                    Language
+                  </div>
+                  {courses.map((course) => (
+                    <div key={`lang-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
+                      {course.language}
+                    </div>
+                  ))}
+
+                  {/* Level Row */}
+                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
+                    Level
+                  </div>
+                  {courses.map((course) => (
+                    <div key={`level-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
+                      {course.level}
+                      {course.isBeginnerFriendly && (
+                        <span className="ml-2 text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          Beginner Friendly
+                        </span>
+                      )}
                     </div>
                   ))}
 

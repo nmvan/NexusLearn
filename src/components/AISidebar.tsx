@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Sparkles, Bookmark, Clock, Bot, User, PlayCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useNotes, type Note } from '../context/NotesContext';
+import { useVideo } from '../context/VideoContext';
 
 interface Message {
   id: string;
@@ -12,11 +13,11 @@ interface Message {
 }
 
 interface AISidebarProps {
-  currentTime: number;
   className?: string;
 }
 
-export const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
+export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
+  const { currentTime, seekTo } = useVideo();
   const { addNote } = useNotes();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -180,10 +181,14 @@ export const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) 
               <div className="flex items-center space-x-2 mb-1 opacity-70 text-xs">
                 {msg.role === 'ai' ? <Bot size={12} /> : <User size={12} />}
                 {msg.timestamp !== undefined && (
-                  <span className="flex items-center">
+                  <button 
+                    onClick={() => seekTo(msg.timestamp!)}
+                    className="flex items-center hover:text-cyan-400 transition-colors"
+                    title="Jump to timestamp"
+                  >
                     <Clock size={10} className="mr-1" />
                     {formatTime(msg.timestamp)}
-                  </span>
+                  </button>
                 )}
               </div>
 
@@ -196,10 +201,13 @@ export const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) 
               {msg.role === 'ai' && (
                 <div className="mt-3 pt-2 border-t border-slate-700/50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="flex items-center space-x-2">
-                    <span className="flex items-center text-[10px] text-slate-400 bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-700/50">
+                    <button 
+                        onClick={() => msg.timestamp && seekTo(msg.timestamp)}
+                        className="flex items-center text-[10px] text-slate-400 bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-700/50 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors"
+                    >
                       <PlayCircle size={10} className="mr-1 text-cyan-400" />
-                      Show Source
-                    </span>
+                      Jump to {formatTime(msg.timestamp || 0)}
+                    </button>
                   </div>
                   <button 
                     onClick={() => saveNote(msg)}
@@ -260,5 +268,3 @@ export const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) 
     </div>
   );
 };
-
-

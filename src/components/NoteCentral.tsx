@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNotes } from '../context/NotesContext';
-import { Download, FileText, Sparkles, Trash2, Clock } from 'lucide-react';
+import { useVideo } from '../context/VideoContext';
+import { Download, FileText, Sparkles, Trash2, Clock, PlayCircle } from 'lucide-react';
 
 export const NoteCentral: React.FC = () => {
   const { notes, deleteNote } = useNotes();
+  const { seekTo } = useVideo();
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
 
@@ -91,20 +93,25 @@ export const NoteCentral: React.FC = () => {
             <div key={note.id} className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-colors group">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center space-x-2 text-sm text-slate-400">
-                  <Clock size={14} />
-                  <span>Timestamp: {formatTime(note.timestamp)}</span>
+                  <button 
+                    onClick={() => seekTo(note.timestamp)}
+                    className="flex items-center space-x-1 text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-500/10 px-2 py-1 rounded"
+                  >
+                    <PlayCircle size={14} />
+                    <span>{formatTime(note.timestamp)}</span>
+                  </button>
                   <span className="text-slate-600">•</span>
                   <span>{note.createdAt.toLocaleDateString()}</span>
                 </div>
                 <button
                   onClick={() => deleteNote(note.id)}
-                  className="text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                  className="text-slate-500 hover:text-red-400 transition-colors p-1"
                   title="Delete note"
                 >
                   <Trash2 size={16} />
                 </button>
               </div>
-              <div className="text-slate-200 whitespace-pre-wrap leading-relaxed">
+              <div className="prose prose-invert max-w-none text-slate-300 text-sm">
                 {note.content}
               </div>
             </div>

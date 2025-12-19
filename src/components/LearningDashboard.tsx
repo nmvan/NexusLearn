@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { VideoPlayer } from './VideoPlayer';
+import { useState, useEffect } from 'react';
 import { AISidebar } from './AISidebar';
 import { PeerReviewSection } from './PeerReviewSection';
+import { AIGoalModal } from './AIGoalModal';
+import { DynamicRoadmap } from './DynamicRoadmap';
+import { LearningProfileCard } from './LearningProfileCard';
 import { BookOpen, Layout, Share2, Zap, ArrowRight, X, LogOut, CreditCard, Settings } from 'lucide-react';
 
 interface LearningDashboardProps {
@@ -9,15 +11,22 @@ interface LearningDashboardProps {
 }
 
 export function LearningDashboard({ onNavigate }: LearningDashboardProps) {
-  const [currentTime, setCurrentTime] = useState(0);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [goal, setGoal] = useState<string | null>(null);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(true);
 
-  // Sample video URL (Big Buck Bunny is a common placeholder, but let's use a tech-related one if possible, or just a generic one)
-  // Using a reliable CDN link for a sample video.
-  const videoSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; 
+  const handleSetGoal = (newGoal: string) => {
+    setGoal(newGoal);
+    setIsGoalModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50">
+      <AIGoalModal 
+        isOpen={isGoalModalOpen} 
+        onClose={() => setIsGoalModalOpen(false)} 
+        onSetGoal={handleSetGoal} 
+      />
       {/* Dashboard Header */}
       <div className="border-b border-slate-800 bg-slate-950/50 backdrop-blur sticky top-0 z-40">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -124,11 +133,8 @@ export function LearningDashboard({ onNavigate }: LearningDashboardProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Area (Video + Notes) */}
           <div className="lg:col-span-2 space-y-6">
-            <VideoPlayer 
-              src={videoSrc} 
-              onTimeUpdate={setCurrentTime}
-              className="w-full"
-            />
+            {/* Video Player Anchor */}
+            <div id="dashboard-video-anchor" className="w-full aspect-video"></div>
             
             {/* Documentation / Transcript Area */}
             <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6 space-y-4">
@@ -164,7 +170,9 @@ export function LearningDashboard({ onNavigate }: LearningDashboardProps) {
           {/* Sidebar Area */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
-              <AISidebar currentTime={currentTime} />
+              <LearningProfileCard goal={goal} />
+              <DynamicRoadmap goal={goal} />
+              <AISidebar />
               
               {/* No-Dark-Patterns: Subscription Management */}
               <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
