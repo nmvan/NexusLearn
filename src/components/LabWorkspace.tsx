@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { Play, RotateCcw, Loader2, Terminal, FileCode2, FolderTree, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -160,6 +160,10 @@ export function LabWorkspace() {
   const [isRunning, setIsRunning] = useState(false);
   const [status, setStatus] = useState<LabStatus>('idle');
   const [output, setOutput] = useState('Output will appear here once you run the code.');
+  const [editorWidth, setEditorWidth] = useState(60);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const splitRef = useRef<HTMLDivElement | null>(null);
 
   const files = LANGUAGE_FILES[language];
   const activeFile = useMemo(() => {
@@ -186,6 +190,66 @@ export function LabWorkspace() {
     setStatus('idle');
     setOutput('Output will appear here once you run the code.');
   };
+
+  const beginResize = useCallback(() => {
+    if (!isLargeScreen) {
+      return;
+    }
+    setIsResizing(true);
+  }, [isLargeScreen]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      setIsLargeScreen(event.matches);
+    };
+
+    setIsLargeScreen(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isLargeScreen && isResizing) {
+      setIsResizing(false);
+    }
+  }, [isLargeScreen, isResizing]);
+
+  useEffect(() => {
+    if (!isResizing || !isLargeScreen) {
+      return;
+    }
+
+    // Track pointer movement to resize editor and output panes in the lab workspace.
+    const handlePointerMove = (event: PointerEvent) => {
+      const container = splitRef.current;
+      if (!container) {
+        return;
+      }
+
+      const bounds = container.getBoundingClientRect();
+      const relativeX = event.clientX - bounds.left;
+      if (bounds.width <= 0) {
+        return;
+      }
+
+      const minWidth = 35;
+      const maxWidth = 75;
+      const percentage = (relativeX / bounds.width) * 100;
+      setEditorWidth(Math.min(Math.max(percentage, minWidth), maxWidth));
+    };
+
+    const stopResize = () => setIsResizing(false);
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', stopResize);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', stopResize);
+    };
+  }, [isResizing, isLargeScreen]);
 
   const simulateRun = () => {
     if (isRunning) {
@@ -220,7 +284,7 @@ export function LabWorkspace() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-slate-950/80 border-l border-slate-800/80">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/80 shadow-lg shadow-slate-950/40">
       <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-indigo-400">UC04 · Practice Lab</p>
@@ -283,8 +347,11 @@ export function LabWorkspace() {
             <span>{STATUS_META[status].label}</span>
           </header>
 
-          <div className="flex flex-1 flex-col lg:flex-row">
-            <section className="flex flex-1 flex-col border-b border-slate-800/70 bg-slate-950/40 lg:border-b-0 lg:border-r">
+          <div ref={splitRef} className="flex flex-1 flex-col lg:flex-row">
+            <section
+              className="flex flex-1 flex-col border-b border-slate-800/70 bg-slate-950/40 lg:min-w-[320px] lg:border-b-0 lg:border-r"
+              style={isLargeScreen ? { flexBasis: `${editorWidth}%` } : undefined}
+            >
               <textarea
                 value={activeCode}
                 onChange={event => updateCode(event.target.value)}
@@ -321,8 +388,22 @@ export function LabWorkspace() {
                 </div>
               </div>
             </section>
-
-            <aside className="flex w-full flex-col bg-slate-950/30 lg:w-80 xl:w-96">
+            <div className="hidden w-px self-stretch bg-slate-800/70 lg:flex">
+              <button
+                type="button"
+                onPointerDown={beginResize}
+                className={`-ml-[9px] flex h-full w-[18px] cursor-col-resize select-none items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 ${
+                  isResizing ? 'text-indigo-300' : ''
+                }`}
+                aria-label="Resize code and output panels"
+              >
+                <span className="block h-24 w-[2px] rounded-full bg-current" />
+              </button>
+            </div>
+            <aside
+              className="flex w-full flex-col bg-slate-950/30 lg:min-w-[260px]"
+              style={isLargeScreen ? { flexBasis: `${100 - editorWidth}%` } : undefined}
+            >
               <div className="border-b border-slate-800/70 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Live Output</p>
               </div>

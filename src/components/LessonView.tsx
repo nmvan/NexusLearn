@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     ChevronLeft,
     ChevronRight,
@@ -100,10 +100,13 @@ const LAB_GUIDE = [
 
 export function LessonView() {
   const navigate = useNavigate();
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { setVideoTarget } = useVideo();
     const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'labs'>('overview');
     const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(null);
+    const [labPanelWidth, setLabPanelWidth] = useState(45);
+    const [isResizing, setIsResizing] = useState(false);
+    const labLayoutRef = useRef<HTMLDivElement | null>(null);
 
     const handlePortalRef = useCallback((node: HTMLDivElement | null) => {
         setVideoContainer(node ?? null);
@@ -116,6 +119,58 @@ export function LessonView() {
         }
         setVideoTarget(null);
     }, [videoContainer, setVideoTarget]);
+
+    useEffect(() => {
+        if (activeTab === 'labs' && isSidebarOpen) {
+            setSidebarOpen(false);
+        }
+    }, [activeTab, isSidebarOpen]);
+
+    useEffect(() => {
+        if (activeTab !== 'labs' && isResizing) {
+            setIsResizing(false);
+        }
+    }, [activeTab, isResizing]);
+
+    // Enable dragging the divider to resize lab panes when the tab is active.
+    useEffect(() => {
+        if (!isResizing) {
+            return;
+        }
+
+        const handlePointerMove = (event: PointerEvent) => {
+            const container = labLayoutRef.current;
+            if (!container) {
+                return;
+            }
+
+            const bounds = container.getBoundingClientRect();
+            const relativeX = event.clientX - bounds.left;
+            const minWidth = 30;
+            const maxWidth = 70;
+            const percentage = (relativeX / bounds.width) * 100;
+            setLabPanelWidth(Math.min(Math.max(percentage, minWidth), maxWidth));
+        };
+
+        const handlePointerUp = () => {
+            setIsResizing(false);
+        };
+
+        window.addEventListener('pointermove', handlePointerMove);
+        window.addEventListener('pointerup', handlePointerUp);
+
+        return () => {
+            window.removeEventListener('pointermove', handlePointerMove);
+            window.removeEventListener('pointerup', handlePointerUp);
+        };
+    }, [isResizing]);
+
+    const startResize = useCallback(() => {
+        if (activeTab !== 'labs') {
+            return;
+        }
+        setIsResizing(true);
+    }, [activeTab]);
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-50 overflow-hidden font-sans">
@@ -262,9 +317,15 @@ export function LessonView() {
 
                 <div className="flex-1 overflow-hidden">
                     {activeTab === 'labs' ? (
-                        <div className="flex h-full flex-col lg:flex-row">
-                            <div className="flex w-full flex-col border-b border-slate-800/80 lg:w-[55%] lg:border-b-0 lg:border-r">
-                                <div className="flex-1 border-b border-slate-800/70 bg-slate-900/60">
+                        <div
+                            ref={labLayoutRef}
+                            className="flex h-full flex-col gap-6 px-6 pb-10 pt-6 lg:flex-row lg:gap-8"
+                        >
+                            <div
+                                className="flex w-full flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-lg shadow-slate-950/40 lg:w-auto"
+                                style={{ flexBasis: `${labPanelWidth}%` }}
+                            >
+                                <div className="flex-1 border-b border-slate-800/70 bg-slate-900/70">
                                     <div
                                         id="video-portal-root"
                                         ref={handlePortalRef}
@@ -296,7 +357,22 @@ export function LessonView() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex-1 min-h-[320px]">
+                            <div className="hidden w-px self-stretch bg-slate-800/80 lg:flex">
+                                <button
+                                    type="button"
+                                    onPointerDown={startResize}
+                                    className={`h-full w-[18px] -ml-[9px] flex items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 ${
+                                        isResizing ? 'cursor-col-resize text-indigo-300' : 'cursor-col-resize'
+                                    }`}
+                                    aria-label="Adjust layout width"
+                                >
+                                    <span className="block h-20 w-[2px] rounded-full bg-current" />
+                                </button>
+                            </div>
+                            <div
+                                className="flex min-h-[360px] flex-1"
+                                style={{ flexBasis: `${100 - labPanelWidth}%` }}
+                            >
                                 <LabWorkspace />
                             </div>
                         </div>
