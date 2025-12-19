@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HeroSearch } from './HeroSearch';
 import { CourseCard, type CourseCardProps } from './CourseCard';
 import { ComparisonModal } from './ComparisonModal';
@@ -8,11 +9,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 export interface Course extends Omit<CourseCardProps, 'onCompareToggle' | 'isSelectedForComparison' | 'className'> {}
 
 interface LandingPageProps {
-  onCourseSelect: (courseId: string) => void;
+  onCourseSelect?: (courseId: string) => void;
   courses: Course[];
 }
 
 export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
+  const navigate = useNavigate();
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [isBeginnerMode, setIsBeginnerMode] = useState(false);
@@ -92,11 +94,12 @@ export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
           {displayedCourses.map((course) => (
             <div 
               key={course.id} 
-              onClick={() => onCourseSelect(course.id)}
+              onClick={() => navigate('/dashboard')}
               className="cursor-pointer transition-transform hover:-translate-y-1"
             >
               <CourseCard 
                 {...course} 
+                isSelectionMode={true}
                 isSelectedForComparison={selectedCourseIds.includes(course.id)}
                 onCompareToggle={handleCompareToggle}
                 className="h-full"

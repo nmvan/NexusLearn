@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import { LearningDashboard } from './components/LearningDashboard';
 import { LandingPage, type Course } from './components/LandingPage';
@@ -6,6 +6,7 @@ import { SubscriptionManagement } from './components/SubscriptionManagement';
 import { NoteCentral } from './components/NoteCentral';
 import { VideoProvider } from './context/VideoContext';
 import { VideoPlayer } from './components/VideoPlayer';
+import { MyCourses } from './components/MyCourses';
 
 const MOCK_COURSES: Course[] = [
   {
@@ -90,47 +91,48 @@ const MOCK_COURSES: Course[] = [
   },
 ];
 
-export function App() {
-  const [currentView, setCurrentView] = useState<'landing' | 'dashboard' | 'subscription' | 'notes'>('landing');
+function AppContent() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const videoSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+  const isLanding = location.pathname === '/';
+  const isDashboard = location.pathname === '/dashboard';
 
   const handleCourseSelect = (courseId: string) => {
     console.log(`Selected course: ${courseId}`);
-    setCurrentView('dashboard');
-  };
-
-  const handleNavigate = (view: 'landing' | 'dashboard' | 'subscription' | 'notes') => {
-    setCurrentView(view);
+    navigate('/dashboard');
   };
 
   return (
-    <VideoProvider>
-      <div className="min-h-screen bg-slate-950 text-slate-50">
-        {currentView !== 'dashboard' && <Header onNavigate={handleNavigate} currentView={currentView} />}
-        
-        <main>
-          {currentView !== 'landing' && (
-            <VideoPlayer 
-              src={videoSrc} 
-              forcePip={currentView !== 'dashboard'} 
-              className="w-full"
-            />
-          )}
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      {!isDashboard && <Header />}
+      
+      <main>
+        {!isLanding && (
+          <VideoPlayer 
+            src={videoSrc} 
+            forcePip={!isDashboard} 
+            className="w-full"
+          />
+        )}
 
-          {currentView === 'landing' && (
-            <LandingPage onCourseSelect={handleCourseSelect} courses={MOCK_COURSES} />
-          )}
-          {currentView === 'dashboard' && (
-            <LearningDashboard onNavigate={handleNavigate} />
-          )}
-          {currentView === 'subscription' && (
-            <SubscriptionManagement onBack={() => setCurrentView('landing')} />
-          )}
-          {currentView === 'notes' && (
-            <NoteCentral />
-          )}
-        </main>
-      </div>
+        <Routes>
+          <Route path="/" element={<LandingPage onCourseSelect={handleCourseSelect} courses={MOCK_COURSES} />} />
+          <Route path="/dashboard" element={<LearningDashboard />} />
+          <Route path="/subscription" element={<SubscriptionManagement />} />
+          <Route path="/notes" element={<NoteCentral />} />
+          <Route path="/my-courses" element={<MyCourses />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+export function App() {
+  return (
+    <VideoProvider>
+      <AppContent />
     </VideoProvider>
   );
 }

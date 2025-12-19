@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AISidebar } from './AISidebar';
 import { PeerReviewSection } from './PeerReviewSection';
 import { AIGoalModal } from './AIGoalModal';
@@ -6,11 +7,8 @@ import { DynamicRoadmap } from './DynamicRoadmap';
 import { LearningProfileCard } from './LearningProfileCard';
 import { BookOpen, Layout, Share2, Zap, ArrowRight, X, LogOut, CreditCard, Settings } from 'lucide-react';
 
-interface LearningDashboardProps {
-  onNavigate?: (view: 'landing' | 'dashboard' | 'subscription' | 'notes') => void;
-}
-
-export function LearningDashboard({ onNavigate }: LearningDashboardProps) {
+export function LearningDashboard() {
+  const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [goal, setGoal] = useState<string | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(true);
@@ -68,7 +66,7 @@ export function LearningDashboard({ onNavigate }: LearningDashboardProps) {
                   <div className="py-1">
                     <button 
                       onClick={() => {
-                        onNavigate?.('subscription');
+                        navigate('/subscription');
                         setIsProfileOpen(false);
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 transition-colors"

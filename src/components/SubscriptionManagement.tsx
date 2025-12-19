@@ -1,11 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, CreditCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
-interface SubscriptionManagementProps {
-  onBack?: () => void;
-}
-
-export function SubscriptionManagement({ onBack }: SubscriptionManagementProps) {
+export function SubscriptionManagement() {
+  const navigate = useNavigate();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
 
@@ -38,14 +36,12 @@ export function SubscriptionManagement({ onBack }: SubscriptionManagementProps) 
         {/* Header with Back Button */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">Subscription Management</h1>
-          {onBack && (
-            <button 
-              onClick={onBack}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              Back to Dashboard
-            </button>
-          )}
+          <button 
+            onClick={() => navigate('/')}
+            className="text-slate-400 hover:text-white transition-colors"
+          >
+            Back to Dashboard
+          </button>
         </div>
 
         {/* Current Plan Card */}
