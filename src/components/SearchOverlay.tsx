@@ -60,15 +60,16 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex flex-col bg-background/80 backdrop-blur-md"
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+          className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl"
         >
           {/* Close Button */}
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -79,11 +80,12 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             <motion.div 
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.2 }}
               className="w-full relative"
             >
-              <div className="relative flex items-center">
-                <Search className="absolute left-4 w-6 h-6 text-muted-foreground" />
+              <div className="relative flex items-center group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
+                <Search className="absolute left-4 w-6 h-6 text-cyan-400" />
                 <input
                   autoFocus
                   type="text"
@@ -91,11 +93,11 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask anything... (e.g., 'Create a study plan for UX Design')"
-                  className="w-full bg-background border-2 border-primary/20 focus:border-primary rounded-2xl py-6 pl-14 pr-14 text-xl shadow-lg outline-none transition-all"
+                  className="w-full bg-black/40 border border-white/10 focus:border-cyan-500/50 rounded-2xl py-6 pl-14 pr-14 text-xl text-white placeholder:text-slate-500 shadow-2xl outline-none transition-all backdrop-blur-md"
                 />
                 <button 
                   onClick={handleSearch}
-                  className="absolute right-4 p-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity"
+                  className="absolute right-4 p-2 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-xl hover:bg-cyan-500/30 transition-all"
                 >
                   <ArrowRight className="w-5 h-5" />
                 </button>
@@ -184,21 +186,48 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
 
                       <div className="space-y-4">
                         {[
-                          { title: "HTML & CSS Fundamentals", duration: "2 Weeks", status: "Start Here" },
-                          { title: "JavaScript Deep Dive", duration: "4 Weeks", status: "Next" },
-                          { title: "React & Ecosystem", duration: "6 Weeks", status: "Locked" }
+                          { 
+                            title: "HTML & CSS Fundamentals", 
+                            duration: "2 Weeks", 
+                            status: "Start Here",
+                            reason: "Builds the structural foundation for all web interfaces."
+                          },
+                          { 
+                            title: "JavaScript Deep Dive", 
+                            duration: "4 Weeks", 
+                            status: "Next",
+                            reason: "Essential for adding interactivity and logic to web pages."
+                          },
+                          { 
+                            title: "React & Ecosystem", 
+                            duration: "6 Weeks", 
+                            status: "Locked",
+                            reason: "Modern industry standard for building complex UIs efficiently."
+                          }
                         ].map((step, i) => (
-                          <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer group">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background flex items-center justify-center border group-hover:border-primary transition-colors">
+                          <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer group">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background flex items-center justify-center border group-hover:border-primary transition-colors mt-1">
                               <span className="font-bold text-muted-foreground group-hover:text-primary">{i + 1}</span>
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-semibold">{step.title}</h4>
-                              <p className="text-sm text-muted-foreground">{step.duration}</p>
+                              <div className="flex items-center justify-between mb-1">
+                                <h4 className="font-semibold">{step.title}</h4>
+                                <BookOpen className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">{step.duration}</p>
+                              <div className="text-xs bg-background/50 p-2 rounded border border-primary/10 text-muted-foreground">
+                                <span className="font-semibold text-primary/80">Why this step?</span> {step.reason}
+                              </div>
                             </div>
-                            <BookOpen className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
                         ))}
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t flex justify-end">
+                         <div className="flex items-center text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-full">
+                            <Sparkles className="w-3 h-3 mr-1 text-primary" />
+                            Generated from 12 top-rated courses
+                         </div>
                       </div>
 
                       <div className="mt-6 flex justify-end">

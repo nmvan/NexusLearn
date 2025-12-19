@@ -1,46 +1,36 @@
-import React from 'react';
+import { useState } from 'react';
 import { HeroSearch } from './HeroSearch';
-import { CourseCard } from './CourseCard';
-import { Sparkles } from 'lucide-react';
+import { CourseCard, type CourseCardProps } from './CourseCard';
+import { ComparisonModal } from './ComparisonModal';
+import { Sparkles, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export interface Course extends Omit<CourseCardProps, 'onCompareToggle' | 'isSelectedForComparison' | 'className'> {}
 
 interface LandingPageProps {
   onCourseSelect: (courseId: string) => void;
+  courses: Course[];
 }
 
-const RECOMMENDED_COURSES = [
-  {
-    id: '1',
-    title: 'Advanced React Patterns & Performance',
-    instructor: 'Sarah Drasner',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070&auto=format&fit=crop',
-    matchScore: 98,
-    lastUpdated: '2 days ago',
-    timeCommitment: '10 hours',
-    whatYouWillBuild: ['Custom Hooks Library', 'State Management System', 'Performance Dashboard'],
-  },
-  {
-    id: '2',
-    title: 'Fullstack Next.js 14: The Complete Guide',
-    instructor: 'Maximilian Schwarzmüller',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?q=80&w=1964&auto=format&fit=crop',
-    matchScore: 92,
-    lastUpdated: '1 week ago',
-    timeCommitment: '24 hours',
-    whatYouWillBuild: ['E-commerce Platform', 'Social Network', 'SaaS Application'],
-  },
-  {
-    id: '3',
-    title: 'UI/UX Design Masterclass for Developers',
-    instructor: 'Gary Simon',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1586717791821-3f44a5638d48?q=80&w=2070&auto=format&fit=crop',
-    matchScore: 85,
-    lastUpdated: '3 weeks ago',
-    timeCommitment: '15 hours',
-    whatYouWillBuild: ['Design System', 'Mobile App Prototype', 'Portfolio Website'],
-  },
-];
+export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
-export function LandingPage({ onCourseSelect }: LandingPageProps) {
+  const handleCompareToggle = (courseId: string, checked: boolean) => {
+    if (checked) {
+      if (selectedCourseIds.length < 3) {
+        setSelectedCourseIds(prev => [...prev, courseId]);
+      } else {
+        // Optional: Show toast that max 3 courses can be compared
+        alert("You can compare up to 3 courses at a time.");
+      }
+    } else {
+      setSelectedCourseIds(prev => prev.filter(id => id !== courseId));
+    }
+  };
+
+  const selectedCourses = courses.filter(c => selectedCourseIds.includes(c.id));
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50">
       {/* Hero Section */}
@@ -83,17 +73,59 @@ export function LandingPage({ onCourseSelect }: LandingPageProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {RECOMMENDED_COURSES.map((course) => (
+          {courses.map((course) => (
             <div 
               key={course.id} 
               onClick={() => onCourseSelect(course.id)}
               className="cursor-pointer transition-transform hover:-translate-y-1"
             >
-              <CourseCard {...course} />
+              <CourseCard 
+                {...course} 
+                isSelectedForComparison={selectedCourseIds.includes(course.id)}
+                onCompareToggle={handleCompareToggle}
+              />
             </div>
           ))}
         </div>
       </div>
+
+      {/* Comparison Floating Bar */}
+      <AnimatePresence>
+        {selectedCourseIds.length >= 2 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40"
+          >
+            <div className="bg-slate-900 border border-slate-700 rounded-full shadow-2xl shadow-indigo-500/20 p-2 pl-6 flex items-center gap-4">
+              <span className="text-slate-200 font-medium">
+                {selectedCourseIds.length} courses selected
+              </span>
+              <button
+                onClick={() => setIsComparisonOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-full font-medium transition-colors flex items-center gap-2"
+              >
+                Compare Now
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => setSelectedCourseIds([])}
+                className="p-2 hover:bg-slate-800 rounded-full text-slate-400 transition-colors"
+              >
+                <span className="sr-only">Clear selection</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <ComparisonModal 
+        isOpen={isComparisonOpen} 
+        onClose={() => setIsComparisonOpen(false)} 
+        courses={selectedCourses} 
+      />
     </div>
   );
 }

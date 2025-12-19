@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Bookmark, Clock, Bot, User } from 'lucide-react';
+import { Send, Sparkles, Bookmark, Clock, Bot, User, PlayCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface Message {
@@ -22,7 +22,7 @@ interface AISidebarProps {
   className?: string;
 }
 
-const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
+export const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -48,6 +48,38 @@ const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Simple Markdown Parser for Bold and Lists
+  const renderMarkdown = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      // Handle Bullet Points
+      if (line.trim().startsWith('- ')) {
+        const content = line.trim().substring(2);
+        return (
+          <div key={i} className="flex items-start space-x-2 ml-2 mb-1">
+            <span className="text-cyan-400 mt-1.5 text-[10px]">●</span>
+            <span className="flex-1">{parseBold(content)}</span>
+          </div>
+        );
+      }
+      // Handle Empty Lines
+      if (!line.trim()) {
+        return <div key={i} className="h-2" />;
+      }
+      // Handle Normal Text
+      return <div key={i} className="mb-1">{parseBold(line)}</div>;
+    });
+  };
+
+  const parseBold = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} className="text-cyan-100 font-semibold">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   const handleExplainClick = async () => {
     const timestamp = currentTime;
     const userMsg: Message = {
@@ -68,7 +100,7 @@ const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        content: `Based on the context from ${formatTime(contextStart)} to ${formatTime(contextEnd)}: \n\nThe instructor is discussing the core principles of "Context Switching" in operating systems. Specifically, they are explaining how the CPU saves the state of a process (PCB) before switching to another. This overhead is critical for multitasking but can impact performance if not optimized.`,
+        content: `**Context Analysis (${formatTime(contextStart)} - ${formatTime(contextEnd)}):**\n\nThe instructor is discussing the core principles of **Context Switching** in operating systems.\n\n**Key Takeaways:**\n- The CPU saves the state of a process (**PCB**) before switching.\n- This overhead is critical for **multitasking**.\n- Can impact performance if not optimized.\n\n**Why this matters:**\n- **Efficiency:** Maximizes CPU utilization by keeping it busy.\n- **User Experience:** Enables smooth multitasking between applications.`,
         timestamp: timestamp,
         isExplanation: true
       };
@@ -97,7 +129,7 @@ const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        content: "That's a great question. In this specific module, the key takeaway is understanding the trade-off between responsiveness and throughput.",
+        content: `**Answer:**\n\nThat's a great question. In this specific module, the key takeaway is understanding the trade-off between **responsiveness** and **throughput**.\n\n**Why it matters:**\n- **Responsiveness:** How fast the system reacts.\n- **Throughput:** Total work done per unit time.`,
         timestamp: currentTime
       };
       setMessages(prev => [...prev, aiMsg]);
@@ -162,12 +194,18 @@ const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
 
               {/* Content */}
               <div className="whitespace-pre-wrap leading-relaxed">
-                {msg.content}
+                {msg.role === 'ai' ? renderMarkdown(msg.content) : msg.content}
               </div>
 
               {/* Actions (Only for AI messages) */}
               {msg.role === 'ai' && (
-                <div className="mt-3 pt-2 border-t border-slate-700/50 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="mt-3 pt-2 border-t border-slate-700/50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center space-x-2">
+                    <span className="flex items-center text-[10px] text-slate-400 bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-700/50">
+                      <PlayCircle size={10} className="mr-1 text-cyan-400" />
+                      Show Source
+                    </span>
+                  </div>
                   <button 
                     onClick={() => saveNote(msg)}
                     className="flex items-center space-x-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
@@ -228,4 +266,4 @@ const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
   );
 };
 
-export default AISidebar;
+

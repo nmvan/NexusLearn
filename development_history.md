@@ -43,6 +43,21 @@ Establish a high-end UI/UX framework that makes the Search bar the "hero" of the
 - [x] Documented decisions in `development_history.md`.
 - [x] Fixed Tailwind CSS v4 configuration (Installed `@tailwindcss/postcss`, updated `postcss.config.js`, and `src/index.css`).
 
+## Step 2: AI Response Refinement & Roadmap Structure
+
+### Goal
+Enhance the quality and credibility of AI-generated content in the Sidebar and Search Overlay.
+
+### Changes
+1.  **Structured AI Responses (AISidebar)**:
+    *   Replaced generic text blocks with structured Markdown-like content.
+    *   Implemented a simple renderer for **bold text** and bullet points.
+    *   Added "Show Source" indicator to cite video context, improving trust.
+
+2.  **Enhanced Roadmap (SearchOverlay)**:
+    *   Added "Why this step?" explanation to each roadmap module to provide context.
+    *   Added a source citation indicator ("Generated from 12 top-rated courses").
+
 ## Step 3: Context-Aware AI Learning Assistant (Few-Shot)
 
 ### Goal
@@ -83,6 +98,29 @@ Address "Spam" and "Abandonment" issues by replacing intrusive emails with an in
 
 3.  **Data Flow**:
     *   `LearningDashboard` manages state (current time, notes, chat history).
+
+## Step 6: Codebase Standardization & Mock Data Integration
+
+### Goal
+Ensure code consistency and prepare the application for dynamic data rendering.
+
+### Changes
+1.  **Named Exports**:
+    *   Converted all default exports to named exports in `App.tsx`, `LearningDashboard.tsx`, `AISidebar.tsx`, and `VideoPlayer.tsx` to enforce consistent import patterns.
+    *   Updated `main.tsx` to import `App` as a named export.
+
+2.  **Mock Data Architecture**:
+    *   Moved course data from `LandingPage.tsx` to `App.tsx` to centralize data management.
+    *   Defined `MOCK_COURSES` in `App.tsx` with comprehensive fields: `titles`, `instructors`, `match scores`, and `whatYouWillBuild` arrays.
+    *   Updated `LandingPage` to accept `courses` as a prop, making it a pure presentational component.
+
+3.  **Tailwind CSS v4**:
+    *   Verified `index.css` configuration (`@import "tailwindcss";`).
+
+4.  **Build Fixes**:
+    *   Fixed TypeScript errors related to `verbatimModuleSyntax` (added `import type` for interfaces).
+    *   Removed unused imports (`React`, `Trophy`) to clean up the codebase.
+    *   Verified successful build with `npm run build`.
     *   Passes `currentTime` from `VideoPlayer` to `AISidebar`.
 
 ### Component Structure
@@ -212,3 +250,77 @@ Create a seamless entry point that guides the user from discovery (Search) to le
 - [x] Integrated `HeroSearch` and `CourseCard` into the landing page.
 - [x] Updated `App.tsx` to handle basic navigation/view switching.
 - [x] Documented the user journey implementation in `development_history.md`.
+
+## Step 6: Decision Support System (Comparison Modal)
+
+### Goal
+Solve "Decision Paralysis" by providing a clear, side-by-side comparison of selected courses, highlighting the AI's top recommendation.
+
+### Cognitive Load Reduction Strategy
+1.  **Side-by-Side Layout**: Eliminates the need for users to switch tabs or rely on working memory to compare course details.
+2.  **Structured Data**: Aligns key decision factors (Last Updated, Time, Projects) in a grid for rapid scanning.
+3.  **AI Guidance**: Visually highlighting the "AI Recommended" course (highest match score) provides a "soft default," reducing the burden of choice.
+4.  **Context Preservation**: Using a modal keeps the user grounded in their search context, preventing disorientation.
+
+### Implementation Details
+*   **Trigger**: A floating action bar appears when 2 or more courses are selected, providing clear feedback and a call to action.
+*   **Visuals**:
+    *   **Modal**: High-contrast dark theme (`slate-900`) with backdrop blur to focus attention.
+    *   **Highlighting**: The recommended course gets a distinct border color (`indigo-500`) and a "Sparkles" badge.
+    *   **Match Score**: Visualized as a progress bar with color coding (Emerald > 90%, Cyan > 70%, Amber < 70%).
+
+### Component Structure
+*   `src/components/ComparisonModal.tsx`:
+    *   **Props**: `isOpen`, `onClose`, `courses`.
+    *   **Logic**: Automatically identifies the course with the highest `matchScore`.
+    *   **Layout**: CSS Grid used for the comparison table to ensure alignment.
+*   `src/components/LandingPage.tsx`:
+    *   **State**: Manages `selectedCourseIds` and `isComparisonOpen`.
+    *   **Interaction**: Handles the "Compare" toggle logic and limits selection (optional max limit).
+
+### Progress
+- [x] Created `ComparisonModal.tsx` with side-by-side grid layout.
+- [x] Implemented "AI Recommended" highlighting logic.
+- [x] Added floating "Compare Now" trigger in `LandingPage.tsx`.
+- [x] Updated `CourseCard.tsx` to handle selection events correctly (stop propagation).
+- [x] Documented cognitive load reduction strategy in `development_history.md`.
+
+## Step 7: Visual Polish & Cyberpunk Enhancements
+
+### Goal
+Enhance the visual appeal of the search experience with "Cyberpunk/Glassmorphism" aesthetics and improved animations to emphasize the AI integration.
+
+### Visual Enhancements
+1.  **Hero Search**:
+    *   **Glassmorphism**: Applied `backdrop-blur-xl`, semi-transparent backgrounds (`bg-black/40`), and subtle borders (`border-white/10`) to create a sleek, modern look.
+    *   **Glow Effects**: Updated the hover glow to transition from Indigo to Cyan, reinforcing the "Deep Sea" and "Cyberpunk" themes.
+    *   **AI Status Badge**: Added a pulsing "AI Status: Online" badge to the search bar to visually confirm the system's readiness and AI capabilities.
+2.  **Header**:
+    *   **Consistency**: Applied similar glassmorphism and glow effects to the header search bar to maintain visual consistency across the application.
+3.  **Search Overlay**:
+    *   **Animation**: Implemented a slide-down animation with a bounce effect using `framer-motion` (`type: "spring", bounce: 0.3`) for a more dynamic and engaging entrance.
+    *   **Styling**: Updated the overlay input to match the new glassmorphism style.
+
+### Progress
+- [x] Updated `HeroSearch.tsx` with cyberpunk styles, glow transition, and AI status badge.
+- [x] Enhanced `Header.tsx` search bar with glassmorphism.
+- [x] Improved `SearchOverlay.tsx` animation and styling.
+- [x] Documented visual updates in `development_history.md`.
+
+## Step 8: AI Interaction & Comparison Enhancements
+
+### Goal
+Improve user trust and engagement by making AI actions more transparent and highlighting content freshness.
+
+### Changes
+1.  **AISidebar**:
+    *   **"Thinking" State**: Added a 1.5s delay with a bouncing dots animation when "Explain this concept" is clicked. This simulates processing time, making the AI feel more "real" and less like a static script.
+    *   **"Why this matters"**: Added a dedicated section to AI responses to explicitly answer the "Why" for the student, reinforcing the learning value.
+2.  **ComparisonModal**:
+    *   **Freshness Highlight**: Implemented logic to identify and highlight the most recently updated course in the "Last Updated" row.
+    *   **Visual Cue**: Added a "Fresh" badge and emerald color coding to the newest course date to draw attention to up-to-date content.
+
+### Progress
+- [x] Updated `AISidebar.tsx` with thinking animation and enhanced response structure.
+- [x] Updated `ComparisonModal.tsx` to highlight the most recent "Last Updated" date.
+- [x] Documented changes in `development_history.md`.

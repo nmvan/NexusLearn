@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import VideoPlayer from './VideoPlayer';
-import AISidebar from './AISidebar';
+import { useState } from 'react';
+import { VideoPlayer } from './VideoPlayer';
+import { AISidebar } from './AISidebar';
 import { BookOpen, Layout, Share2, Zap, ArrowRight, X } from 'lucide-react';
 
-const LearningDashboard: React.FC = () => {
+export function LearningDashboard() {
   const [currentTime, setCurrentTime] = useState(0);
 
   // Sample video URL (Big Buck Bunny is a common placeholder, but let's use a tech-related one if possible, or just a generic one)
@@ -138,4 +138,4 @@ const LearningDashboard: React.FC = () => {
   );
 };
 
-export default LearningDashboard;
+

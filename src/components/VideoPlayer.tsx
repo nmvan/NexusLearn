@@ -8,7 +8,7 @@ interface VideoPlayerProps {
   className?: string;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, className }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate, className }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -168,4 +168,4 @@ const VideoContent = ({
     </div>
 );
 
-export default VideoPlayer;
+
