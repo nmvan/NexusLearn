@@ -1,4 +1,4 @@
-import { Clock, Calendar, CheckSquare, Sparkles, ArrowRight, Globe, ThumbsUp } from 'lucide-react';
+import { Clock, Calendar, CheckSquare, Sparkles, ArrowRight, Globe, ThumbsUp, Star, Code2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export interface CourseCardProps {
@@ -12,10 +12,12 @@ export interface CourseCardProps {
   whatYouWillBuild: string[];
   level?: 'Beginner' | 'Intermediate' | 'Advanced';
   language?: string;
+  techStack?: string[];
   isBeginnerFriendly?: boolean;
   detailedRating?: number;
   price?: number;
   isSelectedForComparison?: boolean;
+  isSelectionMode?: boolean;
   onCompareToggle?: (id: string, checked: boolean) => void;
   className?: string;
 }
@@ -30,8 +32,12 @@ export function CourseCard({
   timeCommitment,
   whatYouWillBuild,
   language,
+  techStack,
   isBeginnerFriendly,
+  detailedRating,
+  price,
   isSelectedForComparison = false,
+  isSelectionMode = false,
   onCompareToggle,
   className,
 }: CourseCardProps) {
@@ -74,6 +80,19 @@ export function CourseCard({
             {title}
           </h3>
           <p className="text-sm text-slate-400">by {instructor}</p>
+          
+          {/* Rating and Price */}
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-2xl font-bold text-white">${price}</span>
+            </div>
+            {detailedRating && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                <Star className="h-4 w-4 fill-current" />
+                <span className="font-bold">{detailedRating}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Metadata Transparency */}
@@ -89,7 +108,13 @@ export function CourseCard({
           {language && (
             <div className="flex items-center gap-1.5 rounded-md bg-slate-800/50 px-2 py-1">
               <Globe className="h-3.5 w-3.5 text-slate-500" />
-              <span>{language}</span>
+              <span>Language: {language}</span>
+            </div>
+          )}
+          {techStack && techStack.length > 0 && (
+            <div className="flex items-center gap-1.5 rounded-md bg-slate-800/50 px-2 py-1">
+              <Code2 className="h-3.5 w-3.5 text-slate-500" />
+              <span>{techStack.join(', ')}</span>
             </div>
           )}
           {isBeginnerFriendly && (
@@ -117,18 +142,22 @@ export function CourseCard({
 
         {/* Interactions */}
         <div className="mt-auto flex items-center justify-between border-t border-slate-800 pt-4">
-          <label 
-            className="flex cursor-pointer items-center gap-2 text-sm text-slate-400 hover:text-slate-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <input 
-              type="checkbox" 
-              className="h-4 w-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500/50"
-              checked={isSelectedForComparison}
-              onChange={(e) => onCompareToggle?.(id, e.target.checked)}
-            />
-            <span>Compare</span>
-          </label>
+          {isSelectionMode ? (
+            <label 
+              className="flex cursor-pointer items-center gap-2 text-sm text-slate-400 hover:text-slate-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input 
+                type="checkbox" 
+                className="h-4 w-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500/50"
+                checked={isSelectedForComparison}
+                onChange={(e) => onCompareToggle?.(id, e.target.checked)}
+              />
+              <span>Select to Compare</span>
+            </label>
+          ) : (
+            <div /> /* Spacer */
+          )}
           
           <button className="flex items-center gap-1 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300">
             View Details

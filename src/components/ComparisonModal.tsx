@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { X, Check, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type CourseCardProps } from './CourseCard';
@@ -28,7 +29,7 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
     return (prevDays < currDays) ? prev : current;
   }, courses[0]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -38,7 +39,7 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60]"
           />
 
           {/* Modal */}
@@ -46,7 +47,7 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 pointer-events-none"
           >
             <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col pointer-events-auto">
               
@@ -244,6 +245,7 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

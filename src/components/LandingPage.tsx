@@ -99,6 +99,7 @@ export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
                 {...course} 
                 isSelectedForComparison={selectedCourseIds.includes(course.id)}
                 onCompareToggle={handleCompareToggle}
+                className="h-full"
               />
             </div>
           ))}

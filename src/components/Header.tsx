@@ -4,9 +4,10 @@ import { cn } from '../lib/utils';
 
 interface HeaderProps {
   onNavigate?: (view: 'landing' | 'dashboard' | 'subscription' | 'notes') => void;
+  currentView?: 'landing' | 'dashboard' | 'subscription' | 'notes';
 }
 
-const Header = ({ onNavigate }: HeaderProps) => {
+const Header = ({ onNavigate, currentView }: HeaderProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
@@ -24,28 +25,30 @@ const Header = ({ onNavigate }: HeaderProps) => {
         </div>
 
         {/* Search Bar - Hero Element */}
-        <div className="flex-1 flex justify-center max-w-3xl mx-4">
-          <div className="relative w-full md:w-[60%] group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full opacity-30 group-hover:opacity-70 transition duration-500 blur animate-pulse"></div>
-            <div className="relative flex items-center">
-              <Search className="absolute left-4 h-5 w-5 text-cyan-400" />
-              <input
-                type="text"
-                placeholder="What do you want to learn today, Nhat?"
-                className={cn(
-                  "w-full h-12 pl-12 pr-4 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/10",
-                  "text-slate-200 placeholder:text-slate-500",
-                  "focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent",
-                  "transition-all duration-300 ease-in-out",
-                  "shadow-[0_0_15px_rgba(0,0,0,0.3)]"
-                )}
-              />
-              <div className="absolute right-3 px-2 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-slate-400 hidden sm:block font-mono">
-                Ctrl + K
+        {currentView !== 'landing' && (
+          <div className="flex-1 flex justify-center max-w-3xl mx-4">
+            <div className="relative w-full md:w-[60%] group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full opacity-30 group-hover:opacity-70 transition duration-500 blur animate-pulse"></div>
+              <div className="relative flex items-center">
+                <Search className="absolute left-4 h-5 w-5 text-cyan-400" />
+                <input
+                  type="text"
+                  placeholder="What do you want to learn today, Nhat?"
+                  className={cn(
+                    "w-full h-12 pl-12 pr-4 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/10",
+                    "text-slate-200 placeholder:text-slate-500",
+                    "focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent",
+                    "transition-all duration-300 ease-in-out",
+                    "shadow-[0_0_15px_rgba(0,0,0,0.3)]"
+                  )}
+                />
+                <div className="absolute right-3 px-2 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-slate-400 hidden sm:block font-mono">
+                  Ctrl + K
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* User Actions */}
         <div className="flex items-center gap-4">

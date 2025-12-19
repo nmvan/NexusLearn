@@ -19,6 +19,7 @@ const MOCK_COURSES: Course[] = [
     whatYouWillBuild: ['A Real-time Trading Dashboard', 'AI-powered Chat App', 'Custom Component Library'],
     level: 'Advanced',
     language: 'English',
+    techStack: ['React'],
     isBeginnerFriendly: false,
     detailedRating: 4.9,
     price: 99,
@@ -34,6 +35,7 @@ const MOCK_COURSES: Course[] = [
     whatYouWillBuild: ['Enterprise SaaS Platform', 'Complex State Management System', 'Micro-frontend Architecture'],
     level: 'Intermediate',
     language: 'English',
+    techStack: ['React'],
     isBeginnerFriendly: false,
     detailedRating: 4.7,
     price: 89,
@@ -49,6 +51,7 @@ const MOCK_COURSES: Course[] = [
     whatYouWillBuild: ['E-commerce Site (Class Components)', 'Redux Saga Implementation', 'Legacy Context API Demo'],
     level: 'Beginner',
     language: 'Vietnamese Sub',
+    techStack: ['React'],
     isBeginnerFriendly: true,
     detailedRating: 4.5,
     price: 49,
@@ -64,6 +67,7 @@ const MOCK_COURSES: Course[] = [
     whatYouWillBuild: ['Todo App', 'Weather Widget', 'Simple Blog'],
     level: 'Beginner',
     language: 'English',
+    techStack: ['React'],
     isBeginnerFriendly: true,
     detailedRating: 4.2,
     price: 29,
@@ -79,6 +83,7 @@ const MOCK_COURSES: Course[] = [
     whatYouWillBuild: ['Compound Components System', 'Render Props Library', 'State Reducer Pattern'],
     level: 'Advanced',
     language: 'English',
+    techStack: ['React'],
     isBeginnerFriendly: false,
     detailedRating: 4.8,
     price: 129,
@@ -101,7 +106,7 @@ export function App() {
   return (
     <VideoProvider>
       <div className="min-h-screen bg-slate-950 text-slate-50">
-        {currentView !== 'dashboard' && <Header onNavigate={handleNavigate} />}
+        {currentView !== 'dashboard' && <Header onNavigate={handleNavigate} currentView={currentView} />}
         
         <main>
           {currentView !== 'landing' && (

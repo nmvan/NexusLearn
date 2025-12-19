@@ -27,7 +27,8 @@ const MOCK_COURSES: CourseCardProps[] = [
     timeCommitment: '22 hours total',
     whatYouWillBuild: ['Tic Tac Toe', 'Blackjack', 'Web Scraper'],
     level: 'Beginner',
-    language: 'Python',
+    language: 'English',
+    techStack: ['Python'],
     isBeginnerFriendly: true,
     detailedRating: 4.8,
     price: 19.99
@@ -42,7 +43,8 @@ const MOCK_COURSES: CourseCardProps[] = [
     timeCommitment: '42 hours total',
     whatYouWillBuild: ['Data Preprocessing Template', 'Regression Models', 'Reinforcement Learning AI'],
     level: 'Intermediate',
-    language: 'Python',
+    language: 'English',
+    techStack: ['Python', 'R'],
     isBeginnerFriendly: false,
     detailedRating: 4.7,
     price: 24.99
@@ -57,7 +59,8 @@ const MOCK_COURSES: CourseCardProps[] = [
     timeCommitment: '60 hours total',
     whatYouWillBuild: ['Snake Game', 'Pong', 'Blog Website'],
     level: 'Beginner',
-    language: 'Python',
+    language: 'English',
+    techStack: ['Python'],
     isBeginnerFriendly: true,
     detailedRating: 4.9,
     price: 22.99
@@ -72,10 +75,107 @@ const MOCK_COURSES: CourseCardProps[] = [
     timeCommitment: '25 hours total',
     whatYouWillBuild: ['Data Visualizations', 'K-Means Clustering', 'Neural Networks'],
     level: 'Intermediate',
-    language: 'Python',
+    language: 'English',
+    techStack: ['Python'],
     isBeginnerFriendly: false,
     detailedRating: 4.6,
     price: 18.99
+  },
+  {
+    id: 's5',
+    title: 'React - The Complete Guide 2024 (incl. React Router & Redux)',
+    instructor: 'Maximilian Schwarzmüller',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/1362070_b9a1_2.jpg',
+    matchScore: 96,
+    lastUpdated: '1 day ago',
+    timeCommitment: '48 hours total',
+    whatYouWillBuild: ['Expense Tracker', 'Food Order App', 'NextJS Blog'],
+    level: 'Intermediate',
+    language: 'English',
+    techStack: ['React', 'Redux'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.8,
+    price: 21.99
+  },
+  {
+    id: 's6',
+    title: 'The Web Developer Bootcamp 2024',
+    instructor: 'Colt Steele',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/625204_436a_3.jpg',
+    matchScore: 94,
+    lastUpdated: '5 days ago',
+    timeCommitment: '64 hours total',
+    whatYouWillBuild: ['YelpCamp', 'Color Game', 'Patatap Clone'],
+    level: 'Beginner',
+    language: 'English',
+    techStack: ['JavaScript', 'HTML/CSS'],
+    isBeginnerFriendly: true,
+    detailedRating: 4.7,
+    price: 19.99
+  },
+  {
+    id: 's7',
+    title: 'Ultimate AWS Certified Solutions Architect Associate 2024',
+    instructor: 'Stephane Maarek',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/2196488_8fc7_10.jpg',
+    matchScore: 90,
+    lastUpdated: '2 weeks ago',
+    timeCommitment: '27 hours total',
+    whatYouWillBuild: ['Serverless Website', 'HA Architecture', 'Data Lake'],
+    level: 'Advanced',
+    language: 'English',
+    techStack: ['AWS'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.7,
+    price: 29.99
+  },
+  {
+    id: 's8',
+    title: 'Design Patterns in TypeScript',
+    instructor: 'Stephen Grider',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/2565606_2846.jpg',
+    matchScore: 89,
+    lastUpdated: '3 weeks ago',
+    timeCommitment: '10 hours total',
+    whatYouWillBuild: ['Maps App', 'Sorter', 'Stats Analyzer'],
+    level: 'Intermediate',
+    language: 'English',
+    techStack: ['TypeScript'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.6,
+    price: 16.99
+  },
+  {
+    id: 's9',
+    title: 'Flutter & Dart - The Complete Guide [2024 Edition]',
+    instructor: 'Maximilian Schwarzmüller',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/1708340_7108_5.jpg',
+    matchScore: 87,
+    lastUpdated: '4 days ago',
+    timeCommitment: '30 hours total',
+    whatYouWillBuild: ['Expense Tracker', 'Meals App', 'Chat App'],
+    level: 'Beginner',
+    language: 'English',
+    techStack: ['Flutter', 'Dart'],
+    isBeginnerFriendly: true,
+    detailedRating: 4.6,
+    price: 19.99
+  },
+  {
+    id: 's10',
+    title: 'Docker and Kubernetes: The Complete Guide',
+    instructor: 'Stephen Grider',
+    thumbnailUrl: 'https://img-c.udemycdn.com/course/750x422/1793828_7999.jpg',
+    matchScore: 85,
+    lastUpdated: '1 month ago',
+    timeCommitment: '22 hours total',
+    whatYouWillBuild: ['Multi-Container App', 'CI/CD Pipeline', 'K8s Cluster'],
+    level: 'Advanced',
+    language: 'English',
+    techStack: ['Docker', 'Kubernetes'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.8,
+    price: 24.99
   }
 ];
 
@@ -88,6 +188,9 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [isBeginnerMode, setIsBeginnerMode] = useState(false);
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -101,6 +204,9 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       setIsBeginnerMode(false);
       setSelectedCourseIds([]);
       setIsComparisonOpen(false);
+      setVisibleCount(6);
+      setIsLoadingMore(false);
+      setIsSelectionMode(false);
     }
     return () => {
       document.body.style.overflow = 'unset';
@@ -146,9 +252,19 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     setIsComparisonOpen(true);
   };
 
-  const displayedCourses = isBeginnerMode 
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 3);
+      setIsLoadingMore(false);
+    }, 1000);
+  };
+
+  const allFilteredCourses = isBeginnerMode 
     ? MOCK_COURSES.filter(c => c.isBeginnerFriendly)
     : MOCK_COURSES;
+
+  const displayedCourses = allFilteredCourses.slice(0, visibleCount);
 
   const selectedCourses = MOCK_COURSES.filter(c => selectedCourseIds.includes(c.id));
 
@@ -160,17 +276,65 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
           transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
-          className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl overflow-y-auto"
+          className="fixed inset-0 z-50 flex flex-col bg-slate-950/90 backdrop-blur-xl overflow-hidden"
         >
-          {/* Close Button */}
-          <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors z-50"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          {/* Fixed Header Area */}
+          <div className="absolute top-20 left-10 right-0 z-50 pointer-events-none">
+            <div className="max-w-7xl mx-auto px-4 h-24 flex items-center justify-end relative pointer-events-auto">
+              
+              {/* Floating Comparison Bar */}
+              <AnimatePresence>
+                {isSelectionMode && (
+                  <motion.div
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 20, opacity: 0 }}
+                    className="mr-4 flex items-center gap-4 p-1.5 pl-5 pr-1.5 bg-slate-900/90 backdrop-blur-xl border border-slate-700 rounded-full shadow-2xl shadow-black/50"
+                  >
+                    <span className="text-sm text-slate-300 font-medium whitespace-nowrap">
+                      {selectedCourseIds.length} selected
+                    </span>
+                    
+                    <div className="h-5 w-px bg-slate-700" />
 
-          <div className="flex-1 flex flex-col items-center justify-start pt-20 px-4 max-w-7xl mx-auto w-full pb-20">
+                    <button
+                      onClick={() => {
+                        setIsSelectionMode(false);
+                        setSelectedCourseIds([]);
+                      }}
+                      className="px-3 py-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      onClick={handleAICompare}
+                      disabled={selectedCourseIds.length < 2}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${
+                        selectedCourseIds.length >= 2
+                          ? 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                          : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <BrainCircuit className="w-4 h-4" />
+                      Compare
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Close Button */}
+              {/* <button 
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button> */}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto w-full">
+            <div className="flex flex-col items-center justify-start pt-20 px-4 max-w-7xl mx-auto w-full pb-20">
             
             {/* Search Input Area */}
             <motion.div 
@@ -266,13 +430,18 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                     className="w-full"
                   >
                     {/* Controls Header */}
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-                      <div>
-                        <h2 className="text-2xl font-bold text-white">
-                          Search Results
-                        </h2>
-                        <p className="text-slate-400">
-                          Found {displayedCourses.length} courses for "{query}"
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                      <div className="flex flex-col gap-1 items-start text-left">
+                        <div className="flex items-baseline gap-3">
+                          <h2 className="text-2xl font-bold text-white">
+                            Search Results
+                          </h2>
+                          <span className="text-slate-400">
+                            ({allFilteredCourses.length} courses found for "{query}")
+                          </span>
+                        </div>
+                        <p className="text-slate-500 text-sm max-w-2xl text-left">
+                          These courses are curated based on your learning style and current skill level. They include hands-on projects and are highly rated by the community.
                         </p>
                       </div>
 
@@ -302,21 +471,20 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                           </span>
                         </div>
 
-                        {/* Compare Button */}
-                        <button
-                          onClick={handleAICompare}
-                          disabled={selectedCourseIds.length < 2}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
-                            selectedCourseIds.length >= 2
-                              ? 'bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/30 text-indigo-300 hover:text-indigo-200 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)]'
-                              : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'
-                          }`}
-                        >
-                          <BrainCircuit className="w-4 h-4" />
-                          <span className="text-sm font-medium">
-                            Compare ({selectedCourseIds.length})
-                          </span>
-                        </button>
+                        {/* Compare Controls */}
+                        {!isSelectionMode ? (
+                          <button
+                            onClick={() => setIsSelectionMode(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
+                          >
+                            <BrainCircuit className="w-4 h-4" />
+                            <span className="text-sm font-medium">Compare Courses</span>
+                          </button>
+                        ) : (
+                          <div className="px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-medium animate-pulse">
+                            Select courses below...
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -326,16 +494,39 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                         <CourseCard 
                           key={course.id}
                           {...course} 
+                          isSelectionMode={isSelectionMode}
                           isSelectedForComparison={selectedCourseIds.includes(course.id)}
                           onCompareToggle={handleCompareToggle}
+                          className="h-full"
                         />
                       ))}
                     </div>
+
+                    {/* Load More Button */}
+                    {visibleCount < allFilteredCourses.length && (
+                      <div className="flex justify-center mt-8">
+                        <button
+                          onClick={handleLoadMore}
+                          disabled={isLoadingMore}
+                          className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isLoadingMore ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            'Load More Results'
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 )}
 
               </AnimatePresence>
             </div>
+          </div>
           </div>
 
           {/* Comparison Modal */}
