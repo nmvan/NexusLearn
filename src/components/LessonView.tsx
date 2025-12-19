@@ -1,19 +1,20 @@
-import { useState, useEffect, useRef } from 'react';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Star, 
-  CheckCircle, 
-  PlayCircle, 
-  Lock, 
-  Menu,
-  MessageSquare,
-  Code,
-  FileText,
-  Download
+import { useState, useEffect, useCallback } from 'react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Star,
+    CheckCircle,
+    PlayCircle,
+    Lock,
+    Menu,
+    MessageSquare,
+    Code,
+    FileText,
+    Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
+import { LabWorkspace } from './LabWorkspace';
 
 // Updated Data to match the "React Mastery" context of the application
 const COURSE_DATA = {
@@ -63,18 +64,58 @@ const LESSON_CONTENT = [
   { time: "08:20", title: "Component Hierarchy" }
 ];
 
+const STUDY_NOTES = [
+    {
+        title: "Props vs State",
+        points: [
+            "Props make components reusable; they are read-only inputs.",
+            "State tracks internal changes; keep it as local as possible.",
+            "Use lifting state up sparingly to avoid prop drilling."
+        ]
+    },
+    {
+        title: "Component Checklist",
+        points: [
+            "Name components based on intent, not implementation details.",
+            "Group related JSX into smaller pure components when markup grows.",
+            "Prefer composition over inheritance for cross-cutting behaviors."
+        ]
+    }
+];
+
+const LAB_GUIDE = [
+    {
+        step: "Read the requirements",
+        detail: "Build a helper that returns the total of a list while handling empty inputs gracefully."
+    },
+    {
+        step: "Use the starter files",
+        detail: "Each language ships with a main entry point and unit tests to validate your logic."
+    },
+    {
+        step: "Run & compare",
+        detail: "Use Run Code to execute in the container, then match your output with the reference solution."
+    }
+];
+
 export function LessonView() {
   const navigate = useNavigate();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { setVideoTarget } = useVideo();
-  const portalRef = useRef<HTMLDivElement>(null);
+    const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'labs'>('overview');
+    const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(null);
+
+    const handlePortalRef = useCallback((node: HTMLDivElement | null) => {
+        setVideoContainer(node ?? null);
+    }, []);
 
   useEffect(() => {
-    if (portalRef.current) {
-      setVideoTarget(portalRef.current);
-    }
-    return () => setVideoTarget(null);
-  }, [setVideoTarget]);
+        if (videoContainer) {
+            setVideoTarget(videoContainer);
+            return () => setVideoTarget(null);
+        }
+        setVideoTarget(null);
+    }, [videoContainer, setVideoTarget]);
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-50 overflow-hidden font-sans">
@@ -164,7 +205,7 @@ export function LessonView() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-950 relative">
+      <div className="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
         {/* Top Navigation */}
         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-950/95 backdrop-blur z-20">
             <div className="flex items-center gap-2 text-sm text-slate-400">
@@ -189,41 +230,135 @@ export function LessonView() {
             </div>
         </div>
 
-        {/* Video Area - Placeholder for Global Player */}
-        <div
-            id="video-portal-root"
-            ref={portalRef}
-            className="w-full aspect-video bg-slate-900 border-b border-slate-800"
-        />
-
-        {/* Lesson Content Info */}
-        <div className="p-6 max-w-5xl mx-auto w-full pb-24">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors group">
-                    <h2 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Lesson Content</h2>
-                    <ChevronRight size={20} className="rotate-90 text-slate-500 group-hover:text-indigo-400 transition-colors" />
-                </div>
-                <button className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors border border-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-800">
-                    <Download size={14} /> Resources
-                </button>
-            </div>
-            
-            <div className="space-y-2 mb-8">
-                {LESSON_CONTENT.map((item, index) => (
-                    <div key={index} className="flex gap-4 text-sm group cursor-pointer hover:bg-slate-900 p-3 rounded-lg border border-transparent hover:border-slate-800 transition-all">
-                        <span className="font-mono text-indigo-400 min-w-[45px] bg-indigo-500/10 px-1.5 py-0.5 rounded text-center">{item.time}</span>
-                        <span className="text-slate-300 group-hover:text-white font-medium">{item.title}</span>
+                <div className="border-b border-slate-800/80 bg-slate-950/90 px-6">
+                    <div className="flex items-center gap-3 overflow-x-auto py-3 text-sm text-slate-400">
+                        {[{
+                            id: 'overview' as const,
+                            label: 'Overview',
+                            icon: FileText
+                        }, {
+                            id: 'notes' as const,
+                            label: 'Notes',
+                            icon: MessageSquare
+                        }, {
+                            id: 'labs' as const,
+                            label: 'Labs',
+                            icon: Code
+                        }].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors ${
+                                    activeTab === tab.id
+                                        ? 'border-indigo-400/70 bg-indigo-500/10 text-indigo-200'
+                                        : 'border-slate-700 text-slate-400 hover:border-indigo-400/60 hover:text-indigo-200'
+                                }`}
+                            >
+                                <tab.icon size={16} /> {tab.label}
+                            </button>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </div>
 
-            <div className="mt-8 p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl">
-                <h3 className="text-sm font-semibold text-indigo-300 mb-2">Instructor Note</h3>
-                <p className="text-sm text-slate-400 italic">
-                    "Don't worry if the syntax looks strange at first. We will practice this pattern many times throughout the course. Focus on understanding the concept of reusability."
-                </p>
-            </div>
-        </div>
+                <div className="flex-1 overflow-hidden">
+                    {activeTab === 'labs' ? (
+                        <div className="flex h-full flex-col lg:flex-row">
+                            <div className="flex w-full flex-col border-b border-slate-800/80 lg:w-[55%] lg:border-b-0 lg:border-r">
+                                <div className="flex-1 border-b border-slate-800/70 bg-slate-900/60">
+                                    <div
+                                        id="video-portal-root"
+                                        ref={handlePortalRef}
+                                        className="h-full min-h-[260px] w-full bg-slate-900"
+                                    />
+                                </div>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-6">
+                                    <div className="mb-6 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs uppercase tracking-[0.3em] text-indigo-400">Lab Workflow</p>
+                                            <h2 className="text-xl font-bold text-white">Practice alongside the lesson</h2>
+                                        </div>
+                                        <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">Realtime feedback</span>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {LAB_GUIDE.map((item, index) => (
+                                            <div key={item.step} className="rounded-xl border border-slate-800/70 bg-slate-900/50 p-4">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-sm font-semibold text-indigo-300">
+                                                        {index + 1}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-sm font-semibold text-white">{item.step}</h3>
+                                                        <p className="mt-1 text-sm text-slate-400">{item.detail}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex-1 min-h-[320px]">
+                                <LabWorkspace />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-full overflow-y-auto custom-scrollbar">
+                            <div
+                                id="video-portal-root"
+                                ref={handlePortalRef}
+                                className="w-full aspect-video bg-slate-900 border-b border-slate-800"
+                            />
+                            <div className="p-6 max-w-5xl mx-auto w-full pb-24">
+                                {activeTab === 'overview' ? (
+                                    <>
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors group">
+                                                <h2 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Lesson Content</h2>
+                                                <ChevronRight size={20} className="rotate-90 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                                            </div>
+                                            <button className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors border border-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-800">
+                                                <Download size={14} /> Resources
+                                            </button>
+                                        </div>
+                                        <div className="space-y-2 mb-8">
+                                            {LESSON_CONTENT.map(item => (
+                                                <div key={item.title} className="flex gap-4 text-sm group cursor-pointer hover:bg-slate-900 p-3 rounded-lg border border-transparent hover:border-slate-800 transition-all">
+                                                    <span className="font-mono text-indigo-400 min-w-[45px] bg-indigo-500/10 px-1.5 py-0.5 rounded text-center">{item.time}</span>
+                                                    <span className="text-slate-300 group-hover:text-white font-medium">{item.title}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="mt-8 p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl">
+                                            <h3 className="text-sm font-semibold text-indigo-300 mb-2">Instructor Note</h3>
+                                            <p className="text-sm text-slate-400 italic">
+                                                "Don't worry if the syntax looks strange at first. We will practice this pattern many times throughout the course. Focus on understanding the concept of reusability."
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+                                            <h2 className="text-xl font-semibold text-white mb-3">Personal Notes</h2>
+                                            <p className="text-sm text-slate-400">Capture the mental model behind this lesson. These notes stay synced with your learning profile.</p>
+                                        </div>
+                                        {STUDY_NOTES.map(note => (
+                                            <div key={note.title} className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6">
+                                                <h3 className="text-lg font-semibold text-white mb-4">{note.title}</h3>
+                                                <ul className="space-y-2 text-sm text-slate-400">
+                                                    {note.points.map(point => (
+                                                        <li key={point} className="flex items-start gap-2">
+                                                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                                                            <span>{point}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
         {/* AI Assistant Button */}
         <button className="fixed bottom-8 right-8 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-full shadow-xl shadow-indigo-600/20 flex items-center gap-3 transition-all hover:scale-105 z-50 group border border-indigo-400/20">
