@@ -91,12 +91,12 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
   const renderQuiz = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">Đánh giá năng lực nhanh</h3>
-        <span className="text-sm text-slate-400">Câu {quizStep + 1}/{QUIZ_QUESTIONS.length}</span>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Đánh giá năng lực nhanh</h3>
+        <span className="text-sm text-slate-500 dark:text-slate-400">Câu {quizStep + 1}/{QUIZ_QUESTIONS.length}</span>
       </div>
       
       <div className="mb-6">
-        <h4 className="text-xl text-slate-200 font-medium mb-6">
+        <h4 className="text-xl text-slate-800 dark:text-slate-200 font-medium mb-6">
           {QUIZ_QUESTIONS[quizStep].question}
         </h4>
         
@@ -105,11 +105,11 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
             <button
               key={idx}
               onClick={() => handleQuizAnswer(option.score)}
-              className="w-full text-left p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500 hover:bg-indigo-500/10 transition-all group"
+              className="w-full text-left p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="text-slate-300 group-hover:text-white">{option.text}</span>
-                <ChevronRight className="text-slate-600 group-hover:text-indigo-400" size={20} />
+                <span className="text-slate-700 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-white">{option.text}</span>
+                <ChevronRight className="text-slate-400 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400" size={20} />
               </div>
             </button>
           ))}
@@ -122,17 +122,17 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
     <div className="space-y-6">
       {/* Goal Input */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
           Mục tiêu học tập của bạn
         </label>
         <div className="relative">
-          <Target className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <Target className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
           <input
             type="text"
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             placeholder="Ví dụ: Học React để làm việc, Master Python..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
           />
         </div>
       </div>
@@ -140,25 +140,25 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
       {/* Knowledge Level */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-slate-300">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
             Mức độ hiểu biết về chủ đề này
           </label>
           {recommendation && (
-            <span className="text-xs text-emerald-400 flex items-center gap-1">
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
               <Sparkles size={12} /> Đề xuất: {recommendation}
             </span>
           )}
         </div>
         
         {!recommendation ? (
-          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <Brain size={20} />
               </div>
               <div>
-                <div className="text-sm font-medium text-indigo-300">Chưa rõ trình độ?</div>
-                <div className="text-xs text-indigo-400/70">Làm bài test nhanh để AI gợi ý lộ trình tối ưu</div>
+                <div className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Chưa rõ trình độ?</div>
+                <div className="text-xs text-indigo-600/70 dark:text-indigo-400/70">Làm bài test nhanh để AI gợi ý lộ trình tối ưu</div>
               </div>
             </div>
             <button
@@ -180,8 +180,8 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
                 onClick={() => setKnowledgeLevel(level.id as any)}
                 className={`p-3 rounded-xl border text-left transition-all ${
                   knowledgeLevel === level.id
-                    ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
+                    ? 'bg-indigo-600/20 border-indigo-500 text-indigo-700 dark:text-white'
+                    : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
               >
                 <div className="text-sm font-medium mb-0.5">{level.label}</div>
@@ -194,7 +194,7 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
 
       {/* Time Commitment */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Thời gian rảnh mỗi ngày
         </label>
         <div className="grid grid-cols-4 gap-2 mb-3">
@@ -204,17 +204,17 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
               onClick={() => setDailyTime(time)}
               className={`py-2 px-1 rounded-lg text-sm font-medium border transition-all ${
                 dailyTime === time
-                  ? 'bg-cyan-600/20 border-cyan-500 text-cyan-300'
-                  : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
+                  ? 'bg-cyan-600/20 border-cyan-500 text-cyan-700 dark:text-cyan-300'
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
               }`}
             >
               {time}p
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-800/50 p-3 rounded-lg">
-          <Calendar size={14} className="text-cyan-400" />
-          <span>Dự kiến hoàn thành: <span className="text-cyan-300 font-medium">{calculateEndDate(dailyTime)}</span></span>
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+          <Calendar size={14} className="text-cyan-600 dark:text-cyan-400" />
+          <span>Dự kiến hoàn thành: <span className="text-cyan-700 dark:text-cyan-300 font-medium">{calculateEndDate(dailyTime)}</span></span>
         </div>
       </div>
 
@@ -229,15 +229,15 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-indigo-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 dark:bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-indigo-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden">
         {/* Background Effects */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -ml-16 -mb-16"></div>
 
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors z-20"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-white transition-colors z-20"
         >
           <X size={20} />
         </button>
@@ -245,12 +245,12 @@ export function AIGoalModal({ isOpen, onClose, onSetGoal }: AIGoalModalProps) {
         <div className="relative z-10">
           {mode === 'setup' && (
             <>
-              <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center mb-4 text-indigo-400">
+              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/20 rounded-xl flex items-center justify-center mb-4 text-indigo-600 dark:text-indigo-400">
                 <Sparkles size={24} />
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-2">Thiết lập mục tiêu</h2>
-              <p className="text-slate-400 mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Thiết lập mục tiêu</h2>
+              <p className="text-slate-500 dark:text-slate-400 mb-6">
                 AI sẽ cá nhân hóa lộ trình dựa trên năng lực và thời gian của bạn.
               </p>
             </>

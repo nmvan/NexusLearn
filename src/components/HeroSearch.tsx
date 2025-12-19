@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Search, Sparkles, BrainCircuit } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SearchOverlay } from './SearchOverlay';
+import { cn } from '../lib/utils';
 
 interface HeroSearchProps {
   isBeginnerMode?: boolean;
@@ -22,35 +23,58 @@ export function HeroSearch({ isBeginnerMode = false, setIsBeginnerMode, onAIComp
           className="relative group cursor-pointer"
         >
           {/* AI Status Badge */}
-          <div className="absolute -top-8 right-0 flex items-center gap-2">
+          <div className={cn(
+            "absolute -top-8 right-0 flex items-center gap-2 px-2 py-1 rounded-full border transition-all duration-300",
+            "bg-sky-100 border-sky-200 text-indigo-900", // Light Mode
+            "dark:bg-transparent dark:border-transparent dark:text-cyan-400/90" // Dark Mode
+          )}>
             <div className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              <span className={cn(
+                "absolute inline-flex h-full w-full rounded-full opacity-75",
+                "bg-indigo-500 animate-pulse", // Light Mode: Gentle pulse
+                "dark:bg-cyan-400 dark:animate-ping" // Dark Mode: Ping
+              )}></span>
+              <span className={cn(
+                "relative inline-flex rounded-full h-2 w-2",
+                "bg-indigo-600", // Light Mode
+                "dark:bg-cyan-500" // Dark Mode
+              )}></span>
             </div>
-            <span className="text-xs font-mono text-cyan-400/90 tracking-widest uppercase shadow-cyan-500/50">AI Status: Online</span>
+            <span className={cn(
+              "text-xs font-mono tracking-widest uppercase",
+              "dark:shadow-cyan-500/50"
+            )}>AI Status: Online</span>
           </div>
 
-          {/* Glow Effect */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 rounded-2xl opacity-30 group-hover:opacity-100 blur transition duration-500" />
+          {/* Glow Effect - Dark Mode Only */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 rounded-2xl opacity-0 dark:opacity-30 dark:group-hover:opacity-100 blur transition duration-500" />
           
           {/* Search Bar Container */}
-          <div className="relative flex items-center bg-black/40 backdrop-blur-xl rounded-2xl p-4 shadow-[0_0_15px_rgba(0,0,0,0.3)] border border-white/10 group-hover:border-cyan-500/30 transition-colors duration-300">
-            <Search className="w-6 h-6 text-cyan-400/70 ml-2" />
+          <div className={cn(
+            "relative flex items-center rounded-2xl p-4 transition-all duration-300",
+            // Light Mode
+            "bg-white/70 backdrop-blur-md border border-slate-200 shadow-sm shadow-indigo-100",
+            "group-hover:bg-indigo-50/50 group-hover:border-indigo-400 group-hover:shadow-[0_0_15px_rgba(224,231,255,0.6)]",
+            // Dark Mode
+            "dark:bg-black/40 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-[0_0_15px_rgba(0,0,0,0.3)]",
+            "dark:group-hover:border-cyan-500/30"
+          )}>
+            <Search className="w-6 h-6 text-slate-400 dark:text-cyan-400/70 ml-2" />
             
             <div className="ml-4 flex-1">
-              <span className="text-slate-400 text-lg font-medium group-hover:text-cyan-100/80 transition-colors">
+              <span className="text-slate-500 dark:text-slate-400 text-lg font-medium group-hover:text-indigo-600 dark:group-hover:text-cyan-100/80 transition-colors">
                 What do you want to learn today?
               </span>
             </div>
 
             <div className="hidden sm:flex items-center gap-2 mr-2">
-              <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-cyan-400/60 font-mono">
+              <span className="px-2 py-1 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-500 dark:text-cyan-400/60 font-mono">
                 Ctrl + K
               </span>
             </div>
             
-            <div className="p-2 bg-cyan-500/10 rounded-xl ml-2 border border-cyan-500/20">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
+            <div className="p-2 bg-indigo-100 dark:bg-cyan-500/10 rounded-xl ml-2 border border-indigo-200 dark:border-cyan-500/20">
+              <Sparkles className="w-5 h-5 text-indigo-700 dark:text-cyan-400 drop-shadow-[0_1px_2px_rgba(125,211,252,0.8)]" />
             </div>
           </div>
         </motion.div>

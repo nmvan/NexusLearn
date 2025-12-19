@@ -44,14 +44,25 @@ export function CourseCard({
   
   // Determine match score color
   const getMatchColor = (score: number) => {
-    if (score >= 90) return "text-emerald-400 border-emerald-400/30 bg-emerald-400/10";
-    if (score >= 70) return "text-cyan-400 border-cyan-400/30 bg-cyan-400/10";
-    return "text-amber-400 border-amber-400/30 bg-amber-400/10";
+    // Base classes for Light Mode (AI Semantic)
+    const lightMode = "text-indigo-900 bg-sky-100 border-sky-200";
+    
+    // Dark Mode classes (Original Neon)
+    let darkMode = "";
+    if (score >= 90) darkMode = "dark:text-emerald-400 dark:border-emerald-400/30 dark:bg-emerald-400/10";
+    else if (score >= 70) darkMode = "dark:text-cyan-400 dark:border-cyan-400/30 dark:bg-cyan-400/10";
+    else darkMode = "dark:text-amber-400 dark:border-amber-400/30 dark:bg-amber-400/10";
+    
+    return `${lightMode} ${darkMode}`;
   };
 
   return (
     <div className={cn(
-      "group relative flex flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10",
+      "group relative flex flex-col overflow-hidden rounded-xl transition-all",
+      // Light Mode
+      "bg-white border border-slate-200 shadow-sm hover:shadow-md hover:shadow-indigo-100 hover:border-indigo-200 hover:bg-indigo-50/30",
+      // Dark Mode
+      "dark:border-slate-800 dark:bg-slate-900/50 dark:backdrop-blur-sm dark:hover:border-indigo-500/50 dark:hover:shadow-lg dark:hover:shadow-indigo-500/10",
       className
     )}>
       {/* Image Section */}
@@ -76,15 +87,15 @@ export function CourseCard({
       {/* Content Section */}
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-4">
-          <h3 className="mb-1 text-lg font-semibold text-slate-100 group-hover:text-indigo-400 transition-colors">
+          <h3 className="mb-1 text-lg font-semibold text-indigo-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
             {title}
           </h3>
-          <p className="text-sm text-slate-400">by {instructor}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">by {instructor}</p>
           
           {/* Rating and Price */}
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="text-2xl font-bold text-white">${price}</span>
+              <span className="text-2xl font-bold text-slate-900 dark:text-white">${price}</span>
             </div>
             {detailedRating && (
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
@@ -96,29 +107,29 @@ export function CourseCard({
         </div>
 
         {/* Metadata Transparency */}
-        <div className="mb-4 flex flex-wrap gap-3 text-xs text-slate-400">
-          <div className="flex items-center gap-1.5 rounded-md bg-slate-800/50 px-2 py-1">
+        <div className="mb-4 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 px-2 py-1">
             <Calendar className="h-3.5 w-3.5 text-slate-500" />
             <span>Updated: {lastUpdated}</span>
           </div>
-          <div className="flex items-center gap-1.5 rounded-md bg-slate-800/50 px-2 py-1">
+          <div className="flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 px-2 py-1">
             <Clock className="h-3.5 w-3.5 text-slate-500" />
             <span>{timeCommitment}</span>
           </div>
           {language && (
-            <div className="flex items-center gap-1.5 rounded-md bg-slate-800/50 px-2 py-1">
+            <div className="flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 px-2 py-1">
               <Globe className="h-3.5 w-3.5 text-slate-500" />
               <span>Language: {language}</span>
             </div>
           )}
           {techStack && techStack.length > 0 && (
-            <div className="flex items-center gap-1.5 rounded-md bg-slate-800/50 px-2 py-1">
+            <div className="flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 px-2 py-1">
               <Code2 className="h-3.5 w-3.5 text-slate-500" />
               <span>{techStack.join(', ')}</span>
             </div>
           )}
           {isBeginnerFriendly && (
-            <div className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-1 text-emerald-400 border border-emerald-500/20">
+            <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
               <ThumbsUp className="h-3.5 w-3.5" />
               <span>Beginner Friendly</span>
             </div>
@@ -132,7 +143,7 @@ export function CourseCard({
           </h4>
           <ul className="space-y-2">
             {whatYouWillBuild.slice(0, 3).map((item, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-slate-300">
+              <li key={index} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
                 <span className="line-clamp-1">{item}</span>
               </li>

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, Bell, User, LogOut, CreditCard, Settings, BookOpen, Play } from 'lucide-react';
+import { Search, Bell, User, LogOut, CreditCard, Settings, BookOpen, Play, Sun, Moon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 const inProgressCourses = [
   { 
@@ -30,43 +31,45 @@ const inProgressCourses = [
 const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const isLanding = location.pathname === '/';
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/50 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/50">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/50 backdrop-blur-xl supports-[backdrop-filter]:bg-white/50 dark:supports-[backdrop-filter]:bg-slate-950/50 transition-colors duration-300">
+      <div className="w-full flex h-16 items-center justify-between px-6">
         {/* Logo Area */}
         <div 
           className="flex items-center gap-2 cursor-pointer" 
           onClick={() => navigate('/')}
         >
-          <div className="h-8 w-8 rounded-lg bg-indigo-700 flex items-center justify-center shadow-[0_0_15px_rgba(67,56,202,0.5)]">
+          <div className="h-8 w-8 rounded-lg bg-indigo-600 dark:bg-indigo-700 flex items-center justify-center shadow-md shadow-indigo-200 dark:shadow-[0_0_15px_rgba(67,56,202,0.5)]">
             <span className="text-white font-bold text-xl">N</span>
           </div>
-          <span className="text-lg font-semibold text-slate-200 hidden md:block">NexusLearn</span>
+          <span className="text-lg font-semibold text-slate-900 dark:text-slate-200 hidden md:block">NexusLearn</span>
         </div>
 
         {/* Search Bar - Hero Element */}
         {!isLanding && (
           <div className="flex-1 flex justify-center max-w-3xl mx-4">
             <div className="relative w-full md:w-[60%] group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full opacity-30 group-hover:opacity-70 transition duration-500 blur animate-pulse"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-sky-500 dark:from-indigo-500 dark:to-cyan-500 rounded-full opacity-20 dark:opacity-30 group-hover:opacity-50 dark:group-hover:opacity-70 transition duration-500 blur animate-pulse"></div>
               <div className="relative flex items-center">
-                <Search className="absolute left-4 h-5 w-5 text-cyan-400" />
+                <Search className="absolute left-4 h-5 w-5 text-slate-400 dark:text-cyan-400" />
                 <input
                   type="text"
                   placeholder="What do you want to learn today, Nhat?"
                   className={cn(
-                    "w-full h-12 pl-12 pr-4 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/10",
-                    "text-slate-200 placeholder:text-slate-500",
-                    "focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent",
+                    "w-full h-12 pl-12 pr-4 rounded-full",
+                    "bg-slate-50 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-slate-400/20",
+                    "text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500",
+                    "focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-cyan-400/50 focus:border-indigo-500/50 dark:focus:border-transparent",
                     "transition-all duration-300 ease-in-out",
-                    "shadow-[0_0_15px_rgba(0,0,0,0.3)]"
+                    "shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.3)]"
                   )}
                 />
-                <div className="absolute right-3 px-2 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-slate-400 hidden sm:block font-mono">
+                <div className="absolute right-3 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-400/10 border border-slate-200 dark:border-slate-400/20 text-xs text-slate-500 dark:text-slate-400 hidden sm:block font-mono">
                   Ctrl + K
                 </div>
               </div>
@@ -76,20 +79,28 @@ const Header = () => {
 
         {/* User Actions */}
         <div className="flex items-center gap-4">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors"
+          >
+            {theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </button>
+
           {/* Courses Dropdown */}
           <div className="relative hidden md:block">
             <button 
               onClick={() => setIsCoursesOpen(!isCoursesOpen)}
-              className="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-cyan-400 transition-colors mr-2"
+              className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-cyan-400 transition-colors mr-2"
             >
               <BookOpen className="h-5 w-5" />
               <span>My Courses</span>
             </button>
 
             {isCoursesOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-800 rounded-xl shadow-xl py-1 z-50">
+              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1 z-50">
                 <div className="px-4 py-3 border-b border-slate-800">
-                  <p className="text-sm font-medium text-white">In Progress</p>
+                  <p className="text-sm font-medium text-slate-50">In Progress</p>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {inProgressCourses.map(course => (

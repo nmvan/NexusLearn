@@ -55,7 +55,7 @@ export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
           <div className="absolute top-20 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 text-center">
+        <div className="relative z-10 container mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-medium mb-8">
             <Sparkles className="w-4 h-4" />
             <span>AI-Powered Learning Path</span>

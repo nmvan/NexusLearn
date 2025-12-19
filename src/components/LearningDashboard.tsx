@@ -5,6 +5,7 @@ import { CourseOverview } from './CourseOverview';
 import { LessonView } from './LessonView';
 import { StudyPlan } from './StudyPlan';
 import { AIGoalModal } from './AIGoalModal';
+import { Grades } from './Grades';
 
 export function LearningDashboard() {
   const navigate = useNavigate();
@@ -48,7 +49,8 @@ export function LearningDashboard() {
             onCreatePlan={() => setIsGoalModalOpen(true)}
           />
         )}
-        {activeTab !== 'overview' && activeTab !== 'study-plan' && (
+        {activeTab === 'grades' && <Grades />}
+        {activeTab !== 'overview' && activeTab !== 'study-plan' && activeTab !== 'grades' && (
           <div className="p-8 text-slate-400">
             Content for {activeTab} is under construction.
           </div>

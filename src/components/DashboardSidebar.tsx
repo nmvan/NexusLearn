@@ -10,7 +10,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeTab, o
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'study-plan', label: 'Study Plan', icon: PieChart },
-    { id: 'my-courses', label: 'My Courses', icon: BookOpen },
+    { id: 'grades', label: 'Grades', icon: BookOpen },
     { id: 'test-practice', label: 'Practice Projects', icon: FileText },
     { id: 'learning-profile', label: 'Learning Profile', icon: User },
   ];

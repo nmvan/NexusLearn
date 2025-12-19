@@ -530,3 +530,211 @@ Prevent "Course Abandonment" by replacing static lesson lists with a dynamic, go
 *   **Micro-Goals**: "Daily Targets" provide frequent dopamine hits upon completion, keeping engagement high.
 *   **Visual Progress**: The connected path and pulse animations make progress tangible and satisfying.
 
+## Step 14: Accessibility & Light Mode Refinement
+
+### Goal
+Improve accessibility and visual comfort in Light Mode by refining color contrast and reducing glare.
+
+### Changes
+1.  **Refined Primary Colors**:
+    *   Updated `tailwind.config.js` and `src/index.css` to use dynamic CSS variables for the accent color.
+    *   **Light Mode**: Darkened Cyan accent to `Cyan-700` (Contrast ratio > 4.5:1).
+    *   **Dark Mode**: Kept `Cyan-400` for the "Neon" look.
+
+2.  **Neutral Palette**:
+    *   Updated Light Mode background to `Slate-50` (Off-white) to reduce eye strain compared to pure white.
+    *   Ensured borders map to `Slate-200` in Light Mode.
+
+3.  **Icon Contrast**:
+    *   Updated `Header.tsx` and `AISidebar.tsx` to use `Slate-600/700` for icons and highlights in Light Mode, replacing the washed-out `Cyan-400`.
+    *   Maintained `Cyan-400` for Dark Mode to preserve the "Deep Sea" theme.
+
+## Step 15: Cognitive Load Reduction (Light Mode Styling)
+
+### Goal
+Optimize `HeroSearch` and `CourseCard` for Light Mode to prevent visual fatigue and improve readability.
+
+### Changes
+1.  **Shadow instead of Glow**:
+    *   Replaced `animate-pulse` and neon glows with soft `shadow-md` or `shadow-indigo-100` in Light Mode.
+    *   **Why**: Neon effects on white backgrounds cause glare and reduce text contrast. Shadows provide necessary depth without the visual noise.
+
+2.  **Glassmorphism Tweak**:
+    *   Adjusted `HeroSearch` background to `bg-white/70` with `border-slate-200`.
+    *   **Why**: Higher opacity ensures content remains readable against the page background, while the border defines the component boundaries clearly.
+
+3.  **Interactive States**:
+    *   Changed hover effects from "Outer Glow" to "Slight Background Tint" (`bg-indigo-50/30`) and "Border Highlight" (`border-indigo-200`).
+    *   **Why**: Subtle state changes reduce cognitive load by avoiding aggressive visual shifts, allowing users to browse courses for longer periods without fatigue.
+
+## Step 16: UI Polish (Light Mode & Accessibility)
+
+### Goal
+Refine secondary components (`AIGoalModal`, `DynamicRoadmap`, `NoteCentral`) to ensure they are visually consistent and accessible in Light Mode.
+
+### Changes
+1.  **Modal Overlay**:
+    *   Updated `AIGoalModal` backdrop to `bg-black/20` in Light Mode (vs `bg-black/80` in Dark Mode).
+    *   **Why**: Provides sufficient separation without creating a harsh contrast against the white modal, maintaining a "clean" aesthetic.
+
+2.  **Roadmap Path**:
+    *   Replaced the glowing cyan line with a solid `Indigo-200` path in Light Mode.
+    *   Softened the active "Pulse" effect to a gentle `Indigo-600` tint.
+    *   **Why**: Reduces visual noise and directs focus to the content rather than the decorative elements.
+
+3.  **NoteCentral Readability**:
+    *   Darkened text colors to `text-slate-900` for better contrast.
+    *   Added `bg-slate-50` background to Markdown blocks and empty states.
+    *   **Why**: Creates a "paper-like" reading experience that is easier on the eyes for long-form text.
+
+## Step 17: Semantic Color System & Saturation Control
+
+### Goal
+Establish a dedicated Semantic Color system for AI elements and refine Light Mode saturation to prevent visual fatigue.
+
+### Changes
+1.  **AI Colors**:
+    *   Defined `ai-text` (Deep Indigo: Indigo-900) and `ai-background` (Sky Blue: Sky-100/200) for Light Mode.
+    *   **Why**: Moves away from the generic "Cyan-400" to a more sophisticated, trustworthy palette for AI interactions.
+
+2.  **Saturation Adjustment**:
+    *   Reduced saturation of Primary and Accent colors by ~15% in Light Mode.
+    *   **Why**: Prevents "color vibration" and glare on white backgrounds, resulting in a more professional and calm aesthetic ("Muted/Pastel Tech").
+
+3.  **Surface Colors**:
+    *   Switched Main Background to `Slate-50` and Cards to `White`.
+    *   **Why**: Creates subtle depth and hierarchy, reducing the "flatness" of pure white-on-white interfaces.
+
+### Impact
+The new color system significantly increases **Sophistication** by using nuanced tones rather than raw primary colors. It reduces **Cognitive Load** by lowering visual intensity, allowing users to focus on learning content without distraction.
+
+## Step 18: AI Micro-interactions & Visual Polish
+
+### Goal
+Refine AI-related micro-interactions and visual cues in Light Mode to align with the new Semantic Color system.
+
+### Changes
+1.  **AI Icons**:
+    *   Updated `Sparkles` and other AI icons to use `Indigo-700` with a subtle `Sky-300` drop-shadow in Light Mode.
+    *   **Why**: Replaces the "neon" look with a more grounded, high-quality visual style suitable for professional environments.
+
+2.  **AI Badges (Status & Match Score)**:
+    *   Standardized AI badges to use `text-indigo-900` on `bg-sky-100` with `border-sky-200`.
+    *   Replaced aggressive `animate-ping` with gentle `fade-in` or `pulse` effects.
+    *   **Why**: Communicates "AI Verified" status clearly without demanding excessive attention or causing distraction.
+
+3.  **Search Focus State**:
+    *   Replaced the "Cyan Glow" on search focus with a soft spread shadow (`shadow-indigo-100`) and `border-indigo-400`.
+    *   **Why**: Creates a welcoming, "soft" focus state that invites input without the harshness of a neon outline.
+
+## Step 19: Paper-like UI & Reading Optimization
+
+### Goal
+Optimize `NoteCentral` and `DynamicRoadmap` for long-form reading and learning in Light Mode, adhering to WCAG AA contrast standards.
+
+### Changes
+1.  **Typography (NoteCentral)**:
+    *   Standardized main text to `Slate-900` (Deep Grey) instead of pure black for better readability.
+    *   Styled AI Summaries with `bg-sky-50` and a `border-l-4 border-indigo-500` accent.
+    *   **Why**: Creates a distinct visual hierarchy between user content and AI insights, mimicking a high-quality textbook or notebook.
+
+2.  **Roadmap Visualization**:
+    *   Updated connecting lines to `Slate-200` (Subtle Grey) in Light Mode.
+    *   Changed "Completed" nodes to solid `Indigo-600` with white icons.
+    *   **Why**: Reduces visual clutter. The solid Indigo nodes act as clear milestones, providing a sense of progress and accomplishment.
+
+3.  **Contrast Compliance**:
+    *   Verified that all new text/background combinations (e.g., Indigo-900 on Sky-100) meet WCAG AA standards.
+    *   **Philosophy**: "Paper-like UI" - The interface should feel as comfortable and natural as reading a well-typeset book, minimizing eye strain during extended study sessions.
+
+
+
+
+
+
+
+## Step 12: Global Video Player & Visibility Fix
+
+### Goal
+Fix VideoPlayer visibility issues and ensure seamless playback across the application.
+
+### Changes
+1.  **Global Video Player**:
+    *   Updated `App.tsx` to render `VideoPlayer` globally when playing, removing the `!isDashboard` restriction.
+    *   Added a hidden container (`#video-hidden-container`) in `App.tsx` to persist the video instance when no visible slot is available.
+
+2.  **Video Player Component**:
+    *   Updated `VideoPlayer.tsx` to accept `isMiniPlayer` prop.
+    *   Implemented React Portals to move the video player between:
+        *   Mini Player (PIP) mode (portal to `document.body`).
+        *   Full Player mode (portal to `#video-player-placeholder`).
+        *   Hidden mode (portal to `#video-hidden-container`).
+    *   Added logic to automatically detect the target container based on `isMiniPlayer` state and DOM availability.
+
+3.  **Lesson View**:
+    *   Updated `LessonView.tsx` to remove the local `VideoPlayer` instance.
+    *   Added a placeholder div (`#video-player-placeholder`) where the global player will portal into when in full view.
+
+### Outcome
+The video player now persists across navigation. It displays as a mini player when outside the dashboard (or when specified), and seamlessly transitions to the full lesson view when the placeholder is available.
+
+## Step 13: Refined Video Portal Logic
+
+### Goal
+Simplify video player positioning logic by relying on DOM element presence rather than explicit props.
+
+### Changes
+1.  **LessonView**:
+    *   Renamed the placeholder ID to `video-portal-root` to clearly indicate its purpose as a portal target.
+
+2.  **VideoPlayer**:
+    *   Removed `isMiniPlayer` prop dependency.
+    *   Implemented automatic detection logic:
+        *   Checks for `document.getElementById('video-portal-root')`.
+        *   If found -> Portals to it (Full View).
+        *   If not found -> Portals to `document.body` (PIP Mode).
+    *   Added `pointer-events-auto` to the PIP container to ensure interactivity.
+    *   Ensured `z-index` (via `z-50`) keeps the PIP player above other content.
+
+### Outcome
+The video player now automatically "snaps" into the lesson view when available, and floats as a PIP player when navigating elsewhere, without requiring complex state management in the parent component.
+
+## Step 14: Context-Aware Video Portal
+
+### Goal
+Enhance video player positioning reliability by using React Context to explicitly track the target container, preventing race conditions or DOM query failures.
+
+### Changes
+1.  **VideoContext**:
+    *   Added `videoTarget` state (HTMLElement | null) and `setVideoTarget` function.
+    *   This allows any component to register itself as the "host" for the global video player.
+
+2.  **LessonView**:
+    *   Added a `ref` to the `video-portal-root` container.
+    *   Used `useEffect` to call `setVideoTarget` with the container ref on mount, and clear it on unmount.
+    *   Ensured the container has `aspect-video` to reserve space and prevent layout shifts.
+
+3.  **VideoPlayer**:
+    *   Updated logic to prioritize `videoTarget` from context over manual DOM queries.
+    *   Retained DOM query as a fallback for robustness.
+    *   This ensures the player snaps to the correct location as soon as the LessonView mounts and registers itself.
+
+### Outcome
+The video player now robustly transitions between the LessonView container and the global PIP mode, driven by explicit React state rather than implicit DOM presence.
+
+## Step 15: Fix Video Player Rendering Logic
+
+### Goal
+Ensure the global video player is rendered when a valid target exists (e.g., in LessonView), even if playback hasn't started yet.
+
+### Issue
+Previously, `App.tsx` only rendered `VideoPlayer` if `isPlaying` was true. This caused the player to be missing in `LessonView` initially, preventing the user from starting the video.
+
+### Changes
+1.  **App.tsx**:
+    *   Updated `AppContent` to destructure `videoTarget` from `useVideo()`.
+    *   Modified the render condition to: `{!isLanding && (isPlaying || videoTarget) && ...}`.
+    *   Removed the obsolete `isMiniPlayer` prop.
+
+### Outcome
+The video player now correctly appears in the LessonView placeholder immediately upon navigation, allowing users to initiate playback.

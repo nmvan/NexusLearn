@@ -4,7 +4,7 @@ import { LearningDashboard } from './components/LearningDashboard';
 import { LandingPage, type Course } from './components/LandingPage';
 import { SubscriptionManagement } from './components/SubscriptionManagement';
 import { NoteCentral } from './components/NoteCentral';
-import { VideoProvider } from './context/VideoContext';
+import { VideoProvider, useVideo } from './context/VideoContext';
 import { VideoPlayer } from './components/VideoPlayer';
 import { MyCourses } from './components/MyCourses';
 
@@ -94,6 +94,7 @@ const MOCK_COURSES: Course[] = [
 function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isPlaying, videoTarget } = useVideo();
   const videoSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
   const isLanding = location.pathname === '/';
@@ -109,13 +110,15 @@ function AppContent() {
       <Header />
       
       <main>
-        {!isLanding && !isDashboard && (
+        {!isLanding && (isPlaying || videoTarget) && (
           <VideoPlayer 
             src={videoSrc} 
-            forcePip={!isDashboard} 
             className="w-full"
           />
         )}
+
+        {/* Hidden container for video player persistence */}
+        <div id="video-hidden-container" className="hidden" />
 
         <Routes>
           <Route path="/" element={<LandingPage onCourseSelect={handleCourseSelect} courses={MOCK_COURSES} />} />

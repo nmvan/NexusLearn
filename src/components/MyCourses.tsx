@@ -106,22 +106,22 @@ export function MyCourses() {
 
     return (
       <div 
-        className="group bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden hover:border-indigo-500/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+        className="group bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]"
       >
-        <div className="relative h-48 bg-black group-video">
+        <div className="relative h-48 bg-slate-900 group-video">
            <video 
              ref={videoRef}
              src={course.videoUrl}
              poster={course.thumbnail}
-             className="w-full h-full object-cover"
+             className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
              onEnded={() => setIsPlaying(false)}
            />
            
            {/* Overlay Controls */}
-           <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
+           <div className={`absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
              <button 
                onClick={togglePlay}
-               className="h-14 w-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white flex items-center justify-center hover:bg-indigo-600 hover:border-indigo-600 transition-all duration-300 transform hover:scale-110"
+               className="h-14 w-14 rounded-full bg-white/30 dark:bg-white/20 backdrop-blur-sm border border-white/50 dark:border-white/30 text-white flex items-center justify-center hover:bg-indigo-600 hover:border-indigo-600 transition-all duration-300 transform hover:scale-110 shadow-lg"
              >
                {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current ml-1" />}
              </button>
@@ -140,53 +140,53 @@ export function MyCourses() {
            </div>
            
            <div className="absolute top-3 left-3">
-                <span className="px-2 py-1 rounded bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-medium backdrop-blur-sm">
+                <span className="px-2 py-1 rounded bg-indigo-600/90 dark:bg-indigo-500/20 border border-indigo-400/30 dark:border-indigo-500/30 text-white dark:text-indigo-300 text-xs font-medium backdrop-blur-sm shadow-sm">
                   {course.category}
                 </span>
            </div>
         </div>
 
-        <div className="p-5 cursor-pointer" onClick={() => navigate('/dashboard')}>
+        <div className="p-5 cursor-pointer" onClick={() => navigate('/dashboard/lesson')}>
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold text-slate-100 line-clamp-1 group-hover:text-indigo-400 transition-colors">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               {course.title}
             </h3>
-            <button className="text-slate-500 hover:text-slate-300">
+            <button className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
               <MoreVertical className="h-4 w-4" />
             </button>
           </div>
           
-          <p className="text-sm text-slate-400 mb-4">{course.instructor}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{course.instructor}</p>
 
-          <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-            <div className="flex items-center gap-2 text-indigo-400 mb-1">
+          <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50">
+            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 mb-1">
               <Play className="h-3 w-3 fill-current" />
               <span className="text-xs font-medium uppercase tracking-wider">Current Lesson</span>
             </div>
-            <p className="text-sm text-slate-200 font-medium truncate">{course.currentVideo.title}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 font-medium truncate">{course.currentVideo.title}</p>
             <p className="text-xs text-slate-500 mt-1">{course.currentVideo.duration} remaining</p>
           </div>
 
           <div className="space-y-3">
-            <div className="flex justify-between text-xs text-slate-400 mb-1">
+            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
               <span>{course.progress}% Complete</span>
               <span>{course.completedLessons}/{course.totalLessons} Lessons</span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-2">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
               <div 
-                className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-2 rounded-full transition-all duration-1000 ease-out" 
+                className="bg-indigo-600 dark:bg-gradient-to-r dark:from-indigo-500 dark:to-cyan-400 h-2 rounded-full transition-all duration-1000 ease-out" 
                 style={{ width: `${course.progress}%` }}
               ></div>
             </div>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
             <div className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
               <span>Last accessed {course.lastAccessed}</span>
             </div>
             {course.progress >= 100 && (
-              <div className="flex items-center gap-1 text-emerald-400">
+              <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                 <Award className="h-3.5 w-3.5" />
                 <span>Completed</span>
               </div>
@@ -201,11 +201,11 @@ export function MyCourses() {
     <div className="container mx-auto px-4 py-8 pb-24">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">My Learning</h1>
-          <p className="text-slate-400">Continue where you left off</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">My Learning</h1>
+          <p className="text-slate-500 dark:text-slate-400">Continue where you left off</p>
         </div>
         <div className="flex gap-2">
-          <select className="bg-slate-900 border border-slate-700 text-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <select className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option>Last Accessed</option>
             <option>Progress (High to Low)</option>
             <option>Progress (Low to High)</option>

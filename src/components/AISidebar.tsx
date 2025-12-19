@@ -52,7 +52,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
         const content = line.trim().substring(2);
         return (
           <div key={i} className="flex items-start space-x-2 ml-2 mb-1">
-            <span className="text-cyan-400 mt-1.5 text-[10px]">●</span>
+            <span className="text-slate-700 dark:text-cyan-400 mt-1.5 text-[10px]">●</span>
             <span className="flex-1">{parseBold(content)}</span>
           </div>
         );
@@ -70,7 +70,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} className="text-cyan-100 font-semibold">{part.slice(2, -2)}</strong>;
+        return <strong key={index} className="text-slate-900 dark:text-cyan-100 font-semibold">{part.slice(2, -2)}</strong>;
       }
       return part;
     });
@@ -149,12 +149,12 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
   };
 
   return (
-    <div className={cn("flex flex-col h-[600px] bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm", className)}>
+    <div className={cn("flex flex-col h-[600px] bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm", className)}>
       {/* Header */}
-      <div className="p-4 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Sparkles className="w-5 h-5 text-cyan-400" />
-          <h3 className="font-semibold text-slate-100">AI Assistant</h3>
+          <Sparkles className="w-5 h-5 text-indigo-700 dark:text-cyan-400 drop-shadow-[0_1px_2px_rgba(125,211,252,0.8)]" />
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100">AI Assistant</h3>
         </div>
         <div className="text-xs text-slate-500 font-mono">
           SYNCED: {formatTime(currentTime)}
@@ -162,7 +162,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -174,8 +174,8 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
             <div className={cn(
               "max-w-[85%] rounded-2xl p-3 text-sm relative group",
               msg.role === 'user' 
-                ? "bg-indigo-600 text-white rounded-tr-none" 
-                : "bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700"
+                ? "bg-indigo-600 text-white rounded-tr-none shadow-sm" 
+                : "bg-sky-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-sky-100 dark:border-slate-700 shadow-sm"
             )}>
               {/* Message Header (Icon + Time) */}
               <div className="flex items-center space-x-2 mb-1 opacity-70 text-xs">
@@ -183,7 +183,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
                 {msg.timestamp !== undefined && (
                   <button 
                     onClick={() => seekTo(msg.timestamp!)}
-                    className="flex items-center hover:text-cyan-400 transition-colors"
+                    className="flex items-center hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
                     title="Jump to timestamp"
                   >
                     <Clock size={10} className="mr-1" />
