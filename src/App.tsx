@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import Header from './components/Header';
 import { LearningDashboard } from './components/LearningDashboard';
 import { LandingPage, type Course } from './components/LandingPage';
+import { SubscriptionManagement } from './components/SubscriptionManagement';
+import { NoteCentral } from './components/NoteCentral';
 
 const MOCK_COURSES: Course[] = [
   {
@@ -36,20 +39,35 @@ const MOCK_COURSES: Course[] = [
 ];
 
 export function App() {
-  const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'dashboard' | 'subscription' | 'notes'>('landing');
 
   const handleCourseSelect = (courseId: string) => {
     console.log(`Selected course: ${courseId}`);
     setCurrentView('dashboard');
   };
 
+  const handleNavigate = (view: 'landing' | 'dashboard' | 'subscription' | 'notes') => {
+    setCurrentView(view);
+  };
+
   return (
-    <>
-      {currentView === 'landing' ? (
-        <LandingPage onCourseSelect={handleCourseSelect} courses={MOCK_COURSES} />
-      ) : (
-        <LearningDashboard />
-      )}
-    </>
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      {currentView !== 'dashboard' && <Header onNavigate={handleNavigate} />}
+      
+      <main>
+        {currentView === 'landing' && (
+          <LandingPage onCourseSelect={handleCourseSelect} courses={MOCK_COURSES} />
+        )}
+        {currentView === 'dashboard' && (
+          <LearningDashboard onNavigate={handleNavigate} />
+        )}
+        {currentView === 'subscription' && (
+          <SubscriptionManagement onBack={() => setCurrentView('landing')} />
+        )}
+        {currentView === 'notes' && (
+          <NoteCentral />
+        )}
+      </main>
+    </div>
   );
 }

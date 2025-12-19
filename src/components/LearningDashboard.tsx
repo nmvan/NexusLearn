@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { VideoPlayer } from './VideoPlayer';
 import { AISidebar } from './AISidebar';
-import { BookOpen, Layout, Share2, Zap, ArrowRight, X } from 'lucide-react';
+import { PeerReviewSection } from './PeerReviewSection';
+import { BookOpen, Layout, Share2, Zap, ArrowRight, X, LogOut, CreditCard, Settings } from 'lucide-react';
 
-export function LearningDashboard() {
+interface LearningDashboardProps {
+  onNavigate?: (view: 'landing' | 'dashboard' | 'subscription' | 'notes') => void;
+}
+
+export function LearningDashboard({ onNavigate }: LearningDashboardProps) {
   const [currentTime, setCurrentTime] = useState(0);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Sample video URL (Big Buck Bunny is a common placeholder, but let's use a tech-related one if possible, or just a generic one)
   // Using a reliable CDN link for a sample video.
@@ -32,10 +38,49 @@ export function LearningDashboard() {
             <button className="p-2 text-slate-400 hover:text-white transition-colors">
               <Share2 size={20} />
             </button>
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 p-[1px]">
-              <div className="h-full w-full rounded-full bg-slate-900 flex items-center justify-center text-xs font-bold">
-                NV
-              </div>
+            
+            <div className="relative">
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 p-[1px] focus:outline-none"
+              >
+                <div className="h-full w-full rounded-full bg-slate-900 flex items-center justify-center text-xs font-bold">
+                  NV
+                </div>
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-xl py-1 z-50">
+                  <div className="px-4 py-3 border-b border-slate-800">
+                    <p className="text-sm font-medium text-white">Nhat Nguyen</p>
+                    <p className="text-xs text-slate-400 truncate">nhat@example.com</p>
+                  </div>
+                  
+                  <div className="py-1">
+                    <button 
+                      onClick={() => {
+                        onNavigate?.('subscription');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 transition-colors"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Subscription
+                    </button>
+                    <button className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2 transition-colors">
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                  </div>
+                  
+                  <div className="border-t border-slate-800 py-1">
+                    <button className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-800 hover:text-red-300 flex items-center gap-2 transition-colors">
+                      <LogOut className="w-4 h-4" />
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -112,6 +157,8 @@ export function LearningDashboard() {
                 ))}
               </div>
             </div>
+
+            <PeerReviewSection />
           </div>
 
           {/* Sidebar Area */}

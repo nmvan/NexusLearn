@@ -324,3 +324,87 @@ Improve user trust and engagement by making AI actions more transparent and high
 - [x] Updated `AISidebar.tsx` with thinking animation and enhanced response structure.
 - [x] Updated `ComparisonModal.tsx` to highlight the most recent "Last Updated" date.
 - [x] Documented changes in `development_history.md`.
+
+## Step 6: Peer Review System (Fairness & Quality)
+
+### Goal
+Address "Troll" reviews and ensure fair grading by implementing a robust Peer Review system with reputation tracking and escalation paths.
+
+### Strategy & "Why"
+*   **Reputation Score**: Displaying a score for each reviewer adds transparency and helps users gauge the credibility of the feedback.
+*   **Flagging System**: Allows users to report low-quality or abusive reviews ("trolls"), maintaining a healthy community.
+*   **Escalation Path (Re-grade)**: The "Request Re-grade" feature provides a safety net against unfair grading. By explicitly mentioning "Senior Reviewer (Reputation > 80)", we set clear expectations about the quality of the second opinion, reassuring the user.
+
+### Implementation Details
+*   **New Component**: `PeerReviewSection.tsx`
+    *   Displays a list of reviews with reviewer metadata (Name, Reputation).
+    *   Visual distinction for "Flagged" reviews.
+    *   "Report/Flag" action for each review.
+*   **Integration**: Added `PeerReviewSection` to `LearningDashboard.tsx` below the lesson content.
+*   **Interaction**:
+    *   Clicking "Request Re-grade" triggers a confirmation modal explaining the escalation process.
+    *   Flagging a review updates its visual state immediately (optimistic UI).
+
+### Functional Requirements
+1.  **Review List**: Render reviews with content, reviewer name, and reputation score.
+2.  **Flagging**: Button to flag a review, changing its visual style to indicate it's under moderation.
+3.  **Re-grade Request**: Button to request a re-grade, with a confirmation dialog to prevent accidental clicks and explain the consequence (Senior Reviewer involvement).
+
+## Step 6: Subscription Management (No-Dark-Patterns)
+
+### Goal
+Implement a transparent and user-friendly subscription management system to solve UC07 (Cancel Subscription).
+
+### Strategy & "Why"
+*   **Trust Building**: By making cancellation easy and transparent, we reduce user frustration and build long-term trust.
+*   **No Dark Patterns**: Avoid "roach motel" designs where it's easy to get in but hard to get out. No guilt-tripping or multi-step confusion.
+*   **Clear Information**: Display exactly what the user is losing and when, without hiding it in fine print.
+
+### Implementation Details
+1.  **SubscriptionManagement Component**:
+    *   Displays current plan details and next billing date clearly.
+    *   Large, visible "Cancel Subscription" button.
+    *   Single confirmation modal: "You will lose access on [Date]. Confirm?".
+    *   Post-cancellation state: Shows "Subscription Cancelled" status with an "Undo" option.
+2.  **Navigation**:
+    *   Added `Header` to `App.tsx` to provide consistent navigation.
+    *   Implemented a profile dropdown in `Header` and `LearningDashboard` to access "Subscription".
+    *   Updated `App.tsx` to handle routing between Landing, Dashboard, and Subscription views.
+
+## Step 7: NoteCentral Implementation
+
+### Goal
+Develop a centralized view for managing notes collected from the AI Sidebar, addressing user feedback about poor web notes.
+
+### Features
+1.  **Note Collection**:
+    *   Implemented `NotesContext` to manage notes globally.
+    *   Updated `AISidebar` to save notes to the global context instead of local state.
+    *   Notes include timestamp, content, and creation date.
+
+2.  **NoteCentral View**:
+    *   Created `NoteCentral.tsx` to display collected notes.
+    *   **Export**: Added functionality to export notes to Markdown.
+    *   **Summarization**: Added "Ask AI to Summarize" button (mocked) to generate a summary of collected notes.
+
+3.  **Navigation**:
+    *   Added "My Notes" button to the `Header`.
+    *   Updated `App.tsx` and `LearningDashboard.tsx` to support navigation to the 'notes' view.
+
+### Files Created/Modified
+*   `src/context/NotesContext.tsx`: New context for global state management.
+*   `src/components/NoteCentral.tsx`: New component for viewing and managing notes.
+*   `src/components/AISidebar.tsx`: Updated to use `NotesContext`.
+*   `src/components/Header.tsx`: Added navigation link.
+*   `src/App.tsx`: Added routing for NoteCentral.
+*   `src/main.tsx`: Wrapped App with `NotesProvider`.
+
+### Progress
+- [x] Created `NotesContext`.
+- [x] Updated `AISidebar` to save notes globally.
+- [x] Created `NoteCentral` view with Export and Summarize features.
+- [x] Integrated `NoteCentral` into the main navigation.
+- [x] Documented changes in `development_history.md`.
+The AT command has been deprecated. Please use schtasks.exe instead.
+
+The request is not supported.

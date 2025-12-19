@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Sparkles, Bookmark, Clock, Bot, User, PlayCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useNotes, type Note } from '../context/NotesContext';
 
 interface Message {
   id: string;
@@ -10,19 +11,13 @@ interface Message {
   isExplanation?: boolean;
 }
 
-interface Note {
-  id: string;
-  timestamp: number;
-  content: string;
-  createdAt: Date;
-}
-
 interface AISidebarProps {
   currentTime: number;
   className?: string;
 }
 
 export const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) => {
+  const { addNote } = useNotes();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -147,7 +142,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({ currentTime, className }) 
       createdAt: new Date()
     };
     
-    // setNotes(prev => [...prev, newNote]);
+    addNote(newNote);
     console.log("Note saved:", newNote);
     // Optional: Show toast or feedback
   };
