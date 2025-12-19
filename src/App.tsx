@@ -94,7 +94,7 @@ const MOCK_COURSES: Course[] = [
 function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isPlaying, videoTarget } = useVideo();
+  const { isPlaying, videoTarget, isActive } = useVideo();
   const videoSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
   const isLanding = location.pathname === '/';
@@ -110,7 +110,7 @@ function AppContent() {
       <Header />
       
       <main>
-        {!isLanding && (isPlaying || videoTarget) && (
+        {(isPlaying || videoTarget || isActive) && (
           <VideoPlayer 
             src={videoSrc} 
             className="w-full"

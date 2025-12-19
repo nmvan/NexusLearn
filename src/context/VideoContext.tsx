@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback, useEffect, type ReactNode } from 'react';
 
 interface VideoContextType {
   currentTime: number;
@@ -14,6 +14,8 @@ interface VideoContextType {
   registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => void;
   videoTarget: HTMLElement | null;
   setVideoTarget: (target: HTMLElement | null) => void;
+  isActive: boolean;
+  closeVideo: () => void;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
@@ -24,29 +26,32 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [videoTarget, setVideoTarget] = useState<HTMLElement | null>(null);
+  const [isActive, setIsActive] = useState(false);
   
   // We use a mutable ref to hold the video element so we can control it
   const internalVideoRef = useRef<HTMLVideoElement>(null);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
 
   const registerVideoRef = useCallback((ref: React.RefObject<HTMLVideoElement | null>) => {
-    // This is a bit of a hack to sync the ref from the component to the context
-    // In a real app, we might just manage the ref here and pass it down
     if (ref.current) {
         setVideoElement(ref.current);
+        setIsActive(true);
     }
   }, []);
 
   const togglePlay = useCallback(() => {
-    if (videoElement) {
-      if (isPlaying) {
-        videoElement.pause();
-      } else {
-        videoElement.play();
-      }
-      setIsPlaying(!isPlaying);
+    if (!videoElement) {
+      return;
     }
-  }, [isPlaying, videoElement]);
+
+    if (videoElement.paused) {
+      videoElement.play().catch((error) => {
+        console.warn('Video playback failed', error);
+      });
+    } else {
+      videoElement.pause();
+    }
+  }, [videoElement]);
 
   const toggleMute = useCallback(() => {
     if (videoElement) {
@@ -70,6 +75,41 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setDuration(dur);
   }, []);
 
+  useEffect(() => {
+    const element = videoElement;
+    if (!element) {
+      return;
+    }
+
+    const handlePlay = () => {
+      setIsPlaying(true);
+      setIsActive(true);
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
+    element.addEventListener('play', handlePlay);
+    element.addEventListener('pause', handlePause);
+    element.addEventListener('ended', handlePause);
+
+    return () => {
+      element.removeEventListener('play', handlePlay);
+      element.removeEventListener('pause', handlePause);
+      element.removeEventListener('ended', handlePause);
+    };
+  }, [videoElement]);
+
+  const closeVideo = useCallback(() => {
+    if (videoElement) {
+      videoElement.pause();
+    }
+    setIsPlaying(false);
+    setIsActive(false);
+    setVideoElement(null);
+  }, [videoElement]);
+
   return (
     <VideoContext.Provider value={{
       currentTime,
@@ -84,7 +124,9 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       handleDurationChange,
       registerVideoRef,
       videoTarget,
-      setVideoTarget
+      setVideoTarget,
+      isActive,
+      closeVideo
     }}>
       {children}
     </VideoContext.Provider>
