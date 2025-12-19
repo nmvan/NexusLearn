@@ -10,7 +10,11 @@ import {
     MessageSquare,
     Code,
     FileText,
-    Download
+    Download,
+    BookOpen,
+    KeyRound,
+    ExternalLink,
+    Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
@@ -98,11 +102,86 @@ const LAB_GUIDE = [
     }
 ];
 
+const LESSON_RESOURCES = {
+    references: [
+        {
+            title: "React Official Docs",
+            description: "Fundamentals guide covering components, props, and state.",
+            url: "https://react.dev/learn" 
+        },
+        {
+            title: "TechNews Pattern Library",
+            description: "Design tokens and layout recipes used across TechNews 3.0.",
+            url: "https://partner.technews.io/patterns" 
+        },
+        {
+            title: "Component Composition Deep Dive",
+            description: "Blog post demonstrating composition patterns with real-world examples.",
+            url: "https://ui.dev/react-composition" 
+        }
+    ],
+    codeSamples: [
+        {
+            title: "Reusable Card Shell",
+            language: "tsx",
+            snippet: `import { PropsWithChildren } from 'react';
+
+type CardShellProps = PropsWithChildren<{ title: string; subtitle?: string }>; 
+
+export function CardShell({ title, subtitle, children }: CardShellProps) {
+    return (
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+      <header className="mb-4">
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        {subtitle ? (
+          <p className="text-sm text-slate-400">{subtitle}</p>
+        ) : null}
+      </header>
+      <div>{children}</div>
+    </section>
+  );
+}`
+        }
+    ],
+    credentials: [
+        {
+            label: "TechNews Sandbox API Key",
+            value: "TN-3.0-XXXX-REPLACE",
+            hint: "Use only inside the course sandbox. Rotate via TechNews Console > Integrations."
+        },
+        {
+            label: "Content CDN Token",
+            value: "cdn_reactmastery_demo",
+            hint: "Attach as the x-cdn-token header for preview content pulls."
+        }
+    ],
+    configs: [
+        {
+            name: "env.local template",
+            content: `VITE_TECHNEWS_API_URL=https://api.technews.dev/v3
+VITE_TECHNEWS_API_KEY=TN-3.0-XXXX-REPLACE
+VITE_TECHNEWS_CDN_TOKEN=cdn_reactmastery_demo`
+        }
+    ],
+    downloads: [
+        {
+            label: "Starter Workspace (.zip)",
+            url: "https://downloads.technews.dev/react-mastery-starter.zip",
+            size: "12.4 MB"
+        },
+        {
+            label: "Container Image (GHCR)",
+            url: "https://ghcr.io/technews/react-lab:3.0",
+            size: "Pull via Docker"
+        }
+    ]
+};
+
 export function LessonView() {
   const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { setVideoTarget } = useVideo();
-    const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'labs'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'resources' | 'labs'>('overview');
     const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(null);
     const [labPanelWidth, setLabPanelWidth] = useState(45);
     const [isResizing, setIsResizing] = useState(false);
@@ -112,13 +191,19 @@ export function LessonView() {
         setVideoContainer(node ?? null);
     }, []);
 
-  useEffect(() => {
+    useEffect(() => {
         if (videoContainer) {
             setVideoTarget(videoContainer);
             return () => setVideoTarget(null);
         }
         setVideoTarget(null);
     }, [videoContainer, setVideoTarget]);
+
+    useEffect(() => {
+        if (activeTab === 'resources') {
+            setVideoContainer(null);
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         if (activeTab === 'labs' && isSidebarOpen) {
@@ -171,6 +256,10 @@ export function LessonView() {
         }
         setIsResizing(true);
     }, [activeTab]);
+
+    const handleStartInteractiveQuiz = useCallback(() => {
+        navigate('/dashboard/lesson/interactive-quiz');
+    }, [navigate]);
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-50 overflow-hidden font-sans">
@@ -246,6 +335,11 @@ export function LessonView() {
                                             {lesson.duration}
                                         </span>
                                     </div>
+                                    {lesson.status === 'current' ? (
+                                        <div className="mt-2 flex items-center gap-2 text-[11px] font-medium text-indigo-300">
+                                            <Sparkles size={12} /> Interactive quiz available via the practice button below the video
+                                        </div>
+                                    ) : null}
                                 </div>
                             </div>
                         ))}
@@ -295,6 +389,10 @@ export function LessonView() {
                             id: 'notes' as const,
                             label: 'Notes',
                             icon: MessageSquare
+                        }, {
+                            id: 'resources' as const,
+                            label: 'Resources',
+                            icon: BookOpen
                         }, {
                             id: 'labs' as const,
                             label: 'Labs',
@@ -378,14 +476,32 @@ export function LessonView() {
                         </div>
                     ) : (
                         <div className="h-full overflow-y-auto custom-scrollbar">
-                            <div
-                                id="video-portal-root"
-                                ref={handlePortalRef}
-                                className="w-full aspect-video bg-slate-900 border-b border-slate-800"
-                            />
-                            <div className="p-6 max-w-5xl mx-auto w-full pb-24">
-                                {activeTab === 'overview' ? (
-                                    <>
+                            {activeTab !== 'resources' && (
+                                <div
+                                    id="video-portal-root"
+                                    ref={handlePortalRef}
+                                    className="w-full aspect-video bg-slate-900 border-b border-slate-800"
+                                />
+                            )}
+                            <div className="p-6 max-w-5xl mx-auto w-full pb-24 space-y-8">
+                                {activeTab === 'overview' && (
+                                    <div>
+                                        <div className="mb-6 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-6">
+                                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                                <div>
+                                                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-300">Interactive Practice</p>
+                                                    <h2 className="mt-1 text-lg font-semibold text-white">Master the MCQ format with immediate feedback</h2>
+                                                    <p className="mt-1 text-sm text-slate-300">Launch the dedicated interactive exercise page to practice the strategies from this lesson.</p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleStartInteractiveQuiz}
+                                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition-colors hover:bg-indigo-500"
+                                                >
+                                                    Start Interactive Exercise <ChevronRight size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div className="flex items-center justify-between mb-6">
                                             <div className="flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors group">
                                                 <h2 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Lesson Content</h2>
@@ -409,8 +525,10 @@ export function LessonView() {
                                                 "Don't worry if the syntax looks strange at first. We will practice this pattern many times throughout the course. Focus on understanding the concept of reusability."
                                             </p>
                                         </div>
-                                    </>
-                                ) : (
+                                    </div>
+                                )}
+
+                                {activeTab === 'notes' && (
                                     <div className="space-y-6">
                                         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
                                             <h2 className="text-xl font-semibold text-white mb-3">Personal Notes</h2>
@@ -429,6 +547,116 @@ export function LessonView() {
                                                 </ul>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'resources' && (
+                                    <div className="space-y-10">
+                                        <section className="space-y-4">
+                                            <header className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-400">Trusted Sources</p>
+                                                    <h2 className="text-xl font-semibold text-white">Supplemental References</h2>
+                                                </div>
+                                                <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">Verified</span>
+                                            </header>
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                {LESSON_RESOURCES.references.map(resource => (
+                                                    <article key={resource.url} className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-5 hover:border-indigo-500/40 transition-colors">
+                                                        <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                                                            <BookOpen size={16} className="text-indigo-300" />
+                                                            {resource.title}
+                                                        </h3>
+                                                        <p className="text-sm text-slate-400 mb-3">{resource.description}</p>
+                                                        <a
+                                                            href={resource.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1 text-sm font-medium text-indigo-300 hover:text-indigo-200"
+                                                        >
+                                                            Open resource <ExternalLink size={14} />
+                                                        </a>
+                                                    </article>
+                                                ))}
+                                            </div>
+                                        </section>
+
+                                        <section className="space-y-4">
+                                            <header>
+                                                <p className="text-xs uppercase tracking-[0.3em] text-indigo-400">Code Samples</p>
+                                                <h2 className="text-xl font-semibold text-white">Reusable Patterns</h2>
+                                            </header>
+                                            {LESSON_RESOURCES.codeSamples.map(sample => (
+                                                <article key={sample.title} className="rounded-2xl border border-slate-800/80 bg-slate-950/60">
+                                                    <div className="flex items-center justify-between border-b border-slate-800/80 px-5 py-3">
+                                                        <div>
+                                                            <h3 className="text-sm font-semibold text-white">{sample.title}</h3>
+                                                            <p className="text-xs text-slate-500 uppercase tracking-[0.2em]">{sample.language}</p>
+                                                        </div>
+                                                    </div>
+                                                    <pre className="overflow-x-auto p-5 text-sm text-slate-300 bg-slate-950/90">
+                                                        <code>{sample.snippet}</code>
+                                                    </pre>
+                                                </article>
+                                            ))}
+                                        </section>
+
+                                        <section className="space-y-4">
+                                            <header>
+                                                <p className="text-xs uppercase tracking-[0.3em] text-indigo-400">Keys & Tokens</p>
+                                                <h2 className="text-xl font-semibold text-white">Sandbox Credentials</h2>
+                                            </header>
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                {LESSON_RESOURCES.credentials.map(credential => (
+                                                    <article key={credential.label} className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-5">
+                                                        <div className="flex items-center gap-2 text-white text-sm font-semibold mb-2">
+                                                            <KeyRound size={16} className="text-amber-300" />
+                                                            {credential.label}
+                                                        </div>
+                                                        <div className="rounded border border-slate-700/70 bg-slate-950/60 px-3 py-2 text-sm font-mono tracking-wide text-indigo-200">{credential.value}</div>
+                                                        <p className="mt-2 text-xs text-slate-500">{credential.hint}</p>
+                                                    </article>
+                                                ))}
+                                            </div>
+                                        </section>
+
+                                        <section className="space-y-4">
+                                            <header>
+                                                <p className="text-xs uppercase tracking-[0.3em] text-indigo-400">Configuration</p>
+                                                <h2 className="text-xl font-semibold text-white">Environment Templates</h2>
+                                            </header>
+                                            {LESSON_RESOURCES.configs.map(config => (
+                                                <article key={config.name} className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-5">
+                                                    <h3 className="text-sm font-semibold text-white mb-3">{config.name}</h3>
+                                                    <pre className="overflow-x-auto rounded-lg border border-slate-800/70 bg-slate-950/90 p-4 text-sm text-emerald-200">
+                                                        <code>{config.content}</code>
+                                                    </pre>
+                                                </article>
+                                            ))}
+                                        </section>
+
+                                        <section className="space-y-4">
+                                            <header>
+                                                <p className="text-xs uppercase tracking-[0.3em] text-indigo-400">Downloads</p>
+                                                <h2 className="text-xl font-semibold text-white">Ready-to-use Assets</h2>
+                                            </header>
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                {LESSON_RESOURCES.downloads.map(download => (
+                                                    <article key={download.url} className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-5 flex flex-col gap-3">
+                                                        <div className="text-sm font-semibold text-white">{download.label}</div>
+                                                        <div className="text-xs text-slate-500">{download.size}</div>
+                                                        <a
+                                                            href={download.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-500/40 bg-indigo-500/10 px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-500/20"
+                                                        >
+                                                            <Download size={16} /> Access Asset
+                                                        </a>
+                                                    </article>
+                                                ))}
+                                            </div>
+                                        </section>
                                     </div>
                                 )}
                             </div>

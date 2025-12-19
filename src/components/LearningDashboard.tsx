@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from './DashboardSidebar';
 import { CourseOverview } from './CourseOverview';
 import { LessonView } from './LessonView';
 import { StudyPlan } from './StudyPlan';
 import { AIGoalModal } from './AIGoalModal';
 import { Grades } from './Grades';
+import { InteractiveQuizPage } from './InteractiveQuizPage';
 
 export function LearningDashboard() {
   const navigate = useNavigate();
@@ -15,8 +16,6 @@ export function LearningDashboard() {
   const [hasPlan, setHasPlan] = useState(false);
 
   // Check if we are in lesson mode
-  const isLesson = location.pathname.includes('/dashboard/lesson');
-
   const handleSetGoal = (goal: string) => {
     console.log("Goal set:", goal);
     setHasPlan(true);
@@ -27,8 +26,13 @@ export function LearningDashboard() {
     }
   };
 
-  if (isLesson) {
-    return <LessonView />;
+  if (location.pathname.startsWith('/dashboard/lesson')) {
+    return (
+      <Routes>
+        <Route path="lesson" element={<LessonView />} />
+        <Route path="lesson/interactive-quiz" element={<InteractiveQuizPage />} />
+      </Routes>
+    );
   }
 
   return (
