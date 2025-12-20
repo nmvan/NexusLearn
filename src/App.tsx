@@ -97,8 +97,6 @@ function AppContent() {
   const { isPlaying, videoTarget, isActive } = useVideo();
   const videoSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
-  const isLanding = location.pathname === '/';
-  const isDashboard = location.pathname.startsWith('/dashboard');
 
   const handleCourseSelect = (courseId: string) => {
     console.log(`Selected course: ${courseId}`);

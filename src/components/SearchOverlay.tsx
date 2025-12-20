@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Sparkles, ArrowRight, BrainCircuit } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, BrainCircuit } from 'lucide-react';
 import { CourseCard, type CourseCardProps } from './CourseCard';
 import { ComparisonModal } from './ComparisonModal';
 

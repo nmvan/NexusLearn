@@ -13,7 +13,7 @@ interface LandingPageProps {
   courses: Course[];
 }
 
-export function LandingPage({ onCourseSelect, courses }: LandingPageProps) {
+export function LandingPage({ courses }: LandingPageProps) {
   const navigate = useNavigate();
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);

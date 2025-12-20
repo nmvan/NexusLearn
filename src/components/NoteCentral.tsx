@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNotes } from '../context/NotesContext';
 import { useVideo } from '../context/VideoContext';
-import { Download, FileText, Sparkles, Trash2, Clock, PlayCircle } from 'lucide-react';
+import { Download, FileText, Sparkles, Trash2, PlayCircle } from 'lucide-react';
 
 export const NoteCentral: React.FC = () => {
   const { notes, deleteNote } = useNotes();

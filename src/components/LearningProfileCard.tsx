@@ -1,4 +1,4 @@
-import React from 'react';
+// ...existing code...
 import { User, Clock, TrendingUp } from 'lucide-react';
 
 interface LearningProfileCardProps {

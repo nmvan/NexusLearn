@@ -1,5 +1,4 @@
-import React from 'react';
-import { CheckCircle2, Circle, Lock, MapPin, Calendar } from 'lucide-react';
+import { CheckCircle2, Lock, MapPin, Calendar } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface Module {
@@ -42,7 +41,7 @@ export function DynamicRoadmap({ goal }: DynamicRoadmapProps) {
         {/* Vertical connecting line */}
         <div className="absolute left-[11px] top-2 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800" />
 
-        {modules.map((module, index) => (
+        {modules.map((module) => (
           <div key={module.id} className="relative pl-8 pb-6 last:pb-0 group">
             {/* Node Indicator */}
             <div className={cn(
