@@ -92,7 +92,7 @@ const MOCK_COURSES: Course[] = [
 ];
 
 function AppContent() {
-  const location = useLocation();
+  // ...existing code...
   const navigate = useNavigate();
   const { isPlaying, videoTarget, isActive } = useVideo();
   const videoSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";

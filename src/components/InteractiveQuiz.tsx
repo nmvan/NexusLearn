@@ -106,7 +106,7 @@ export function InteractiveQuiz() {
     const [feedback, setFeedback] = useState<QuestionStatus | null>(null);
     const [isSummaryVisible, setIsSummaryVisible] = useState(false);
     const [draftMessage, setDraftMessage] = useState<string | null>(null);
-    const messageTimeoutRef = useRef<number>();
+    const messageTimeoutRef = useRef<number | null>(null);
 
     const currentQuestion = QUESTIONS[currentIndex];
     const currentState = questionStates[currentIndex];
@@ -405,7 +405,7 @@ export function InteractiveQuiz() {
                                 disabled={isDisabled}
                             >
                                 <div className="flex items-start gap-3">
-                                    <span className="mt-0.5 h-6 w-6 rounded-full border border-current text-center text-sm font-semibold leading-[22px]">
+                                    <span className="mt-0.5 h-6 w-6 rounded-full border border-current text-center text-sm font-semibold leading-5.5">
                                         {option.label}
                                     </span>
                                     <span className="text-sm leading-6">{option.text}</span>

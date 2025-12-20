@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Target, Sparkles, X, Brain, Calendar, ChevronRight } from 'lucide-react';
 
 interface AIGoalModalProps {
