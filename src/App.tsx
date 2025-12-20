@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import { LearningDashboard } from './components/LearningDashboard';
 import { LandingPage, type Course } from './components/LandingPage';
