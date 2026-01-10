@@ -231,7 +231,7 @@ export function LessonView() {
 
             const bounds = container.getBoundingClientRect();
             const relativeX = event.clientX - bounds.left;
-            const minWidth = 30;
+            const minWidth = 0;
             const maxWidth = 70;
             const percentage = (relativeX / bounds.width) * 100;
             setLabPanelWidth(Math.min(Math.max(percentage, minWidth), maxWidth));
