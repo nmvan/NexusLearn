@@ -284,7 +284,7 @@ export function LabWorkspace() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/80 shadow-lg shadow-slate-950/40">
+    <div className="flex w-full h-full flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/80 shadow-lg shadow-slate-950/40">
       <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-indigo-400">UC04 · Practice Lab</p>
