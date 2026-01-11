@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotes } from '../context/NotesContext';
 import { useCourses } from '../context/CourseContext';
 import { useVideo } from '../context/VideoContext';
 import { Download, FileText, Sparkles, Trash2, PlayCircle, ChevronDown, ChevronRight, Search } from 'lucide-react';
 
 export const NoteCentral: React.FC = () => {
+  const navigate = useNavigate();
   const { notes, deleteNote } = useNotes();
   const { courses } = useCourses();
   const { seekTo } = useVideo();
@@ -84,6 +86,12 @@ export const NoteCentral: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleTimestampClick = (timestamp: number) => {
+    navigate('/dashboard/lesson');
+    // Small delay to ensure navigation completes before seeking
+    setTimeout(() => seekTo(timestamp), 100);
+  };
+
   const handleSummarize = () => {
     setIsSummarizing(true);
     // Mock AI Summary
@@ -152,8 +160,16 @@ export const NoteCentral: React.FC = () => {
                         <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
                           {note.title}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">
-                          {formatTime(note.timestamp)}
+                        <div className="flex items-center space-x-1 text-xs text-slate-500 dark:text-slate-400">
+                          <span>Understanding Components</span>
+                          <ChevronRight size={14} className="text-slate-600" />
+                          <button 
+                            onClick={() => handleTimestampClick(note.timestamp)}
+                            className="flex items-center space-x-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                          >
+                            <PlayCircle size={12} />
+                            <span>{formatTime(note.timestamp)}</span>
+                          </button>
                         </div>
                       </button>
                     ))}
@@ -175,18 +191,17 @@ export const NoteCentral: React.FC = () => {
                 {selectedNote ? selectedNote.title : 'NoteCentral'}
               </h1>
               {selectedNote && (
-                <div className="flex items-center space-x-4 mt-1">
+                <div className="flex items-center space-x-2 mt-1">
                   <span className="text-sm text-slate-500 dark:text-slate-400">
                     {getCourseTitle(selectedNote.courseId || 'uncategorized')}
                   </span>
-                  {/* phần này hard code, cần dữ liệu mock */}
                   <ChevronRight size={14} className="text-slate-600" />
                   <span className="text-sm text-slate-500 dark:text-slate-400">React Basics</span>
                   <ChevronRight size={14} className="text-slate-600" />
                   <span className="text-sm text-slate-500 dark:text-slate-400">Understanding Components</span>
                   <ChevronRight size={14} className="text-slate-600" />
                   <button 
-                    onClick={() => seekTo(selectedNote.timestamp)}
+                    onClick={() => handleTimestampClick(selectedNote.timestamp)}
                     className="flex items-center space-x-1 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
                   >
                     <PlayCircle size={14} />
