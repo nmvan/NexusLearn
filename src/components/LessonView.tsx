@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
+import { useNotes } from '../context/NotesContext';
 import { LabWorkspace } from './LabWorkspace';
 
 // Updated Data to match the "React Mastery" context of the application
@@ -66,25 +67,6 @@ const LESSON_CONTENT = [
   { time: "04:10", title: "Your First Component" },
   { time: "05:37", title: "Importing and Exporting" },
   { time: "08:20", title: "Component Hierarchy" }
-];
-
-const STUDY_NOTES = [
-    {
-        title: "Props vs State",
-        points: [
-            "Props make components reusable; they are read-only inputs.",
-            "State tracks internal changes; keep it as local as possible.",
-            "Use lifting state up sparingly to avoid prop drilling."
-        ]
-    },
-    {
-        title: "Component Checklist",
-        points: [
-            "Name components based on intent, not implementation details.",
-            "Group related JSX into smaller pure components when markup grows.",
-            "Prefer composition over inheritance for cross-cutting behaviors."
-        ]
-    }
 ];
 
 const LAB_GUIDE = [
@@ -181,10 +163,16 @@ export function LessonView() {
   const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { setVideoTarget } = useVideo();
+  const { notes, addNote } = useNotes();
+  const { seekTo, currentTime, isPlaying, togglePlay } = useVideo();
     const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'resources' | 'labs'>('overview');
     const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(null);
     const [labPanelWidth, setLabPanelWidth] = useState(45);
     const [isResizing, setIsResizing] = useState(false);
+    const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+    const [newNoteTitle, setNewNoteTitle] = useState('');
+    const [newNoteContent, setNewNoteContent] = useState('');
+    const [wasPlaying, setWasPlaying] = useState(false);
     const labLayoutRef = useRef<HTMLDivElement | null>(null);
 
     const handlePortalRef = useCallback((node: HTMLDivElement | null) => {
@@ -260,6 +248,12 @@ export function LessonView() {
     const handleStartInteractiveQuiz = useCallback(() => {
         navigate('/dashboard/lesson/interactive-quiz');
     }, [navigate]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-50 overflow-hidden font-sans">
@@ -531,22 +525,36 @@ export function LessonView() {
                                 {activeTab === 'notes' && (
                                     <div className="space-y-6">
                                         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-                                            <h2 className="text-xl font-semibold text-white mb-3">Personal Notes</h2>
-                                            <p className="text-sm text-slate-400">Capture the mental model behind this lesson. These notes stay synced with your learning profile.</p>
-                                        </div>
-                                        {STUDY_NOTES.map(note => (
-                                            <div key={note.title} className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6">
-                                                <h3 className="text-lg font-semibold text-white mb-4">{note.title}</h3>
-                                                <ul className="space-y-2 text-sm text-slate-400">
-                                                    {note.points.map(point => (
-                                                        <li key={point} className="flex items-start gap-2">
-                                                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                                                            <span>{point}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h2 className="text-xl font-semibold text-white mb-3">Personal Notes</h2>
+                                                    <p className="text-sm text-slate-400">Capture the mental model behind this lesson. These notes stay synced with your learning profile.</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setWasPlaying(isPlaying);
+                                                        if (isPlaying) togglePlay();
+                                                        setShowAddNoteModal(true);
+                                                    }}
+                                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
+                                                >
+                                                    Add Note
+                                                </button>
                                             </div>
-                                        ))}
+                                        </div>
+                                        {notes.length > 0 ? notes.map(note => (
+                                            <div key={note.id} className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6 cursor-pointer hover:bg-slate-800/30 transition-colors" onClick={() => seekTo(note.timestamp)}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h3 className="text-lg font-semibold text-white">{note.title || 'Untitled Note'}</h3>
+                                                    <span className="font-mono text-indigo-400 min-w-[45px] bg-indigo-500/10 px-1.5 py-0.5 rounded text-cente">{formatTime(note.timestamp)}</span>
+                                                </div>
+                                                <p className="text-sm text-slate-400">{note.content}</p>
+                                            </div>
+                                        )) : (
+                                            <div className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6 text-center">
+                                                <p className="text-slate-400">No notes yet. Add notes while watching the video!</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -671,6 +679,65 @@ export function LessonView() {
             </div>
             <span className="font-bold pr-1">Nexus AI Tutor</span>
         </button>
+
+        {/* Add Note Modal */}
+        {showAddNoteModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-slate-800 text-white p-6 rounded-lg shadow-2xl border border-indigo-500/30 w-96">
+                    <h3 className="text-lg font-semibold mb-4">Add New Note</h3>
+                    <p className="text-sm text-gray-300 mb-4">Timestamp: {formatTime(currentTime)}</p>
+                    <input
+                        type="text"
+                        value={newNoteTitle}
+                        onChange={(e) => setNewNoteTitle(e.target.value)}
+                        className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-4"
+                        placeholder="Note title..."
+                    />
+                    <textarea
+                        value={newNoteContent}
+                        onChange={(e) => setNewNoteContent(e.target.value)}
+                        className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
+                        placeholder="Note content..."
+                    />
+                    <div className="flex justify-end space-x-2 mt-4">
+                        <button
+                            onClick={() => {
+                                setShowAddNoteModal(false);
+                                setNewNoteTitle('');
+                                setNewNoteContent('');
+                                if (wasPlaying) togglePlay();
+                                setWasPlaying(false);
+                            }}
+                            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (newNoteContent.trim()) {
+                                    const newNote = {
+                                        id: Date.now().toString(),
+                                        title: newNoteTitle.trim() || 'Untitled Note',
+                                        timestamp: currentTime,
+                                        content: newNoteContent.trim(),
+                                        createdAt: new Date(),
+                                    };
+                                    addNote(newNote);
+                                }
+                                setShowAddNoteModal(false);
+                                setNewNoteTitle('');
+                                setNewNoteContent('');
+                                if (wasPlaying) togglePlay();
+                                setWasPlaying(false);
+                            }}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                        >
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
       </div>
     </div>
   );

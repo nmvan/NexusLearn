@@ -123,6 +123,7 @@ const VideoContent: React.FC<VideoContentProps> = ({
                 {hoveredNote && (
                     <div ref={tooltipRef} className="absolute bg-slate-800 text-white p-3 rounded-lg shadow-2xl border border-indigo-500/30 max-w-xs z-10 text-sm" style={{ left: `${adjustedTooltipLeft}%`, top: `${tooltipTop}px`, transform: 'translateX(-50%)' }}>
                         <p className="text-gray-300 mb-1">Timestamp: {formatTime(hoveredNote.timestamp)}</p>
+                        {hoveredNote.title && <p className="font-semibold mb-1">{hoveredNote.title}</p>}
                         <p>{hoveredNote.content}</p>
                     </div>
                 )}
@@ -172,6 +173,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     const [pipPosition, setPipPosition] = useState<{ x: number; y: number } | null>(null);
     const [showNoteEditor, setShowNoteEditor] = useState(false);
     const [noteText, setNoteText] = useState('');
+    const [noteTitle, setNoteTitle] = useState('');
     const [wasPlaying, setWasPlaying] = useState(false);
     const [noteEditorPosition, setNoteEditorPosition] = useState<{ x: number; y: number } | null>(null);
     const noteEditorDragInfoRef = useRef({
@@ -594,6 +596,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                         </button>
                     </div>
                     <p className="text-sm text-gray-300 mb-2">Timestamp: {formatTime(currentTime)}</p>
+                    <input
+                        type="text"
+                        value={noteTitle}
+                        onChange={(e) => setNoteTitle(e.target.value)}
+                        className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-2"
+                        placeholder="Enter note title..."
+                    />
                     <div className="flex space-x-1 mb-2">
                         <button onClick={() => insertFormat('**')} className="p-1 text-white hover:bg-slate-600 rounded" title="Bold">
                             <Bold size={16} />
@@ -623,6 +632,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                             onClick={() => {
                                 setShowNoteEditor(false);
                                 setNoteText('');
+                                setNoteTitle('');
                                 if (wasPlaying) togglePlay();
                             }}
                             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
@@ -634,6 +644,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                                 if (noteText.trim()) {
                                     const newNote = {
                                         id: Date.now().toString(),
+                                        title: noteTitle.trim(),
                                         timestamp: currentTime,
                                         content: noteText.trim(),
                                         createdAt: new Date(),
@@ -642,6 +653,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                                 }
                                 setShowNoteEditor(false);
                                 setNoteText('');
+                                setNoteTitle('');
                                 if (wasPlaying) togglePlay();
                             }}
                             className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
@@ -677,6 +689,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                           onClick={() => {
                               setShowNoteEditor(false);
                               setNoteText('');
+                              setNoteTitle('');
                               if (wasPlaying) togglePlay();
                           }}
                           className="text-white hover:text-gray-300 text-xl leading-none"
@@ -685,6 +698,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                       </button>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">Timestamp: {formatTime(currentTime)}</p>
+                  <input
+                      type="text"
+                      value={noteTitle}
+                      onChange={(e) => setNoteTitle(e.target.value)}
+                      className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-2"
+                      placeholder="Enter note title..."
+                  />
                   <div className="flex space-x-1 mb-2">
                       <button onClick={() => insertFormat('**')} className="p-1 text-white hover:bg-slate-600 rounded" title="Bold">
                           <Bold size={16} />
@@ -714,6 +734,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                           onClick={() => {
                               setShowNoteEditor(false);
                               setNoteText('');
+                              setNoteTitle('');
                               if (wasPlaying) togglePlay();
                           }}
                           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
@@ -725,6 +746,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                               if (noteText.trim()) {
                                   const newNote = {
                                       id: Date.now().toString(),
+                                      title: noteTitle.trim(),
                                       timestamp: currentTime,
                                       content: noteText.trim(),
                                       createdAt: new Date(),
@@ -733,6 +755,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                               }
                               setShowNoteEditor(false);
                               setNoteText('');
+                              setNoteTitle('');
                               if (wasPlaying) togglePlay();
                           }}
                           className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"

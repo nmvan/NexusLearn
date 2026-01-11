@@ -138,6 +138,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
     
     const newNote: Note = {
       id: Date.now().toString(),
+      title: "AI Note",
       timestamp: message.timestamp,
       content: message.content,
       createdAt: new Date()

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, type ReactNode } from 'reac
 
 export interface Note {
   id: string;
+  title: string;
   timestamp: number;
   content: string;
   createdAt: Date;
