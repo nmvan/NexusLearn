@@ -183,7 +183,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     const [noteTitle, setNoteTitle] = useState('');
     const [wasPlaying, setWasPlaying] = useState(false);
     const [noteEditorPosition, setNoteEditorPosition] = useState<{ x: number; y: number } | null>(null);
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [, setIsFullscreen] = useState(false);
     const noteEditorDragInfoRef = useRef({
         startX: 0,
         startY: 0,
