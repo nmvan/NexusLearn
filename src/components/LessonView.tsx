@@ -19,11 +19,13 @@ import {
     Italic,
     Underline,
     List,
-    ListOrdered
+    ListOrdered,
+    Edit,
+    Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
-import { useNotes } from '../context/NotesContext';
+import { useNotes, type Note } from '../context/NotesContext';
 import { LabWorkspace } from './LabWorkspace';
 
 // Updated Data to match the "React Mastery" context of the application
@@ -168,7 +170,7 @@ export function LessonView() {
   const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { setVideoTarget } = useVideo();
-  const { notes: allNotes, addNote } = useNotes();
+  const { notes: allNotes, addNote, editNote, deleteNote } = useNotes();
   const notes = allNotes.filter(note => note.courseId === '1');
   const { seekTo, currentTime, isPlaying, togglePlay } = useVideo();
     const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'resources' | 'labs'>('overview');
@@ -179,6 +181,7 @@ export function LessonView() {
     const [newNoteTitle, setNewNoteTitle] = useState('');
     const [newNoteContent, setNewNoteContent] = useState('');
     const [wasPlaying, setWasPlaying] = useState(false);
+    const [editingNote, setEditingNote] = useState<Note | null>(null);
     const labLayoutRef = useRef<HTMLDivElement | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -255,6 +258,19 @@ export function LessonView() {
     const handleStartInteractiveQuiz = useCallback(() => {
         navigate('/dashboard/lesson/interactive-quiz');
     }, [navigate]);
+
+    const handleEditNote = (note: Note) => {
+        setEditingNote(note);
+        setNewNoteTitle(note.title);
+        setNewNoteContent(note.content);
+        setWasPlaying(isPlaying);
+        if (isPlaying) togglePlay();
+        setShowAddNoteModal(true);
+    };
+
+    const handleDeleteNote = (noteId: string) => {
+        deleteNote(noteId);
+    };
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -565,10 +581,34 @@ export function LessonView() {
                                             </div>
                                         </div>
                                         {notes.length > 0 ? notes.map(note => (
-                                            <div key={note.id} className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6 cursor-pointer hover:bg-slate-800/30 transition-colors" onClick={() => seekTo(note.timestamp)}>
+                                            <div key={note.id} className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6 cursor-pointer hover:bg-slate-800/30 transition-colors group" onClick={() => seekTo(note.timestamp)}>
                                                 <div className="flex items-center justify-between mb-4">
-                                                    <h3 className="text-lg font-semibold text-white">{note.title || 'Untitled Note'}</h3>
-                                                    <span className="font-mono text-indigo-400 min-w-[45px] bg-indigo-500/10 px-1.5 py-0.5 rounded text-cente">{formatTime(note.timestamp)}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="text-lg font-semibold text-white">{note.title || 'Untitled Note'}</h3>
+                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleEditNote(note);
+                                                                }}
+                                                                className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-indigo-400 transition-colors"
+                                                                title="Edit note"
+                                                            >
+                                                                <Edit size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteNote(note.id);
+                                                                }}
+                                                                className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-red-400 transition-colors"
+                                                                title="Delete note"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <span className="font-mono text-indigo-400 min-w-[45px] bg-indigo-500/10 px-1.5 py-0.5 rounded text-center">{formatTime(note.timestamp)}</span>
                                                 </div>
                                                 <p className="text-sm text-slate-400">{note.content}</p>
                                             </div>
@@ -706,8 +746,9 @@ export function LessonView() {
         {showAddNoteModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <div className="bg-slate-800 text-white p-6 rounded-lg shadow-2xl border border-indigo-500/30 w-96">
-                    <h3 className="text-lg font-semibold mb-4">Add New Note</h3>
-                    <p className="text-sm text-gray-300 mb-4">Timestamp: {formatTime(currentTime)}</p>
+                    <h3 className="text-lg font-semibold mb-4">{editingNote ? 'Edit Note' : 'Add New Note'}</h3>
+                    {!editingNote && <p className="text-sm text-gray-300 mb-4">Timestamp: {formatTime(currentTime)}</p>}
+                    {editingNote && <p className="text-sm text-gray-300 mb-4">Original Timestamp: {formatTime(editingNote.timestamp)}</p>}
                     <input
                         type="text"
                         value={newNoteTitle}
@@ -747,6 +788,7 @@ export function LessonView() {
                                 setShowAddNoteModal(false);
                                 setNewNoteTitle('');
                                 setNewNoteContent('');
+                                setEditingNote(null);
                                 if (wasPlaying) togglePlay();
                                 setWasPlaying(false);
                             }}
@@ -757,25 +799,33 @@ export function LessonView() {
                         <button
                             onClick={() => {
                                 if (newNoteContent.trim()) {
-                                    const newNote = {
-                                        id: Date.now().toString(),
-                                        title: newNoteTitle.trim() || 'Untitled Note',
-                                        timestamp: currentTime,
-                                        content: newNoteContent.trim(),
-                                        createdAt: new Date(),
-                                        courseId: '1', // Mock course ID - in a real app, this would come from current course context
-                                    };
-                                    addNote(newNote);
+                                    if (editingNote) {
+                                        editNote(editingNote.id, {
+                                            title: newNoteTitle.trim() || 'Untitled Note',
+                                            content: newNoteContent.trim(),
+                                        });
+                                    } else {
+                                        const newNote = {
+                                            id: Date.now().toString(),
+                                            title: newNoteTitle.trim() || 'Untitled Note',
+                                            timestamp: currentTime,
+                                            content: newNoteContent.trim(),
+                                            createdAt: new Date(),
+                                            courseId: '1', // Mock course ID - in a real app, this would come from current course context
+                                        };
+                                        addNote(newNote);
+                                    }
                                 }
                                 setShowAddNoteModal(false);
                                 setNewNoteTitle('');
                                 setNewNoteContent('');
+                                setEditingNote(null);
                                 if (wasPlaying) togglePlay();
                                 setWasPlaying(false);
                             }}
                             className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
                         >
-                            Save
+                            {editingNote ? 'Update' : 'Save'}
                         </button>
                     </div>
                 </div>

@@ -14,6 +14,7 @@ export interface Note {
 interface NotesContextType {
   notes: Note[];
   addNote: (note: Note) => void;
+  editNote: (id: string, updatedNote: Partial<Note>) => void;
   deleteNote: (id: string) => void;
 }
 
@@ -177,12 +178,16 @@ export const NotesProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setNotes((prev) => [...prev, note]);
   };
 
+  const editNote = (id: string, updatedNote: Partial<Note>) => {
+    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, ...updatedNote } : n)));
+  };
+
   const deleteNote = (id: string) => {
     setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
   return (
-    <NotesContext.Provider value={{ notes, addNote, deleteNote }}>
+    <NotesContext.Provider value={{ notes, addNote, editNote, deleteNote }}>
       {children}
     </NotesContext.Provider>
   );
