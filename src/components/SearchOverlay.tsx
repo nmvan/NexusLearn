@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, ArrowRight, BrainCircuit } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, BrainCircuit, X } from 'lucide-react';
 import { CourseCard, type CourseCardProps } from './CourseCard';
 import { ComparisonModal } from './ComparisonModal';
 
@@ -231,6 +231,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
 
   const handleSearch = () => {
     if (!query.trim()) return;
+
     
     setIsThinking(true);
     setShowResults(false);
@@ -357,7 +358,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="w-full max-w-4xl relative"
+              className="w-full max-w-4xl relative z-[60] pointer-events-auto"
             >
               <div className="relative flex items-center group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
@@ -381,7 +382,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             </motion.div>
 
             {/* Dynamic Content Area */}
-            <div className="w-full mt-8">
+            <div className="w-full mt-8 pointer-events-auto">
               <AnimatePresence mode="wait">
                 
                 {/* State 1: Suggestions */}
