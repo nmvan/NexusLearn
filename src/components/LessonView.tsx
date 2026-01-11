@@ -14,7 +14,12 @@ import {
     BookOpen,
     KeyRound,
     ExternalLink,
-    Sparkles
+    Sparkles,
+    Bold,
+    Italic,
+    Underline,
+    List,
+    ListOrdered
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
@@ -174,6 +179,7 @@ export function LessonView() {
     const [newNoteContent, setNewNoteContent] = useState('');
     const [wasPlaying, setWasPlaying] = useState(false);
     const labLayoutRef = useRef<HTMLDivElement | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const handlePortalRef = useCallback((node: HTMLDivElement | null) => {
         setVideoContainer(node ?? null);
@@ -253,6 +259,21 @@ export function LessonView() {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const insertFormat = (before: string, after: string = before) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = newNoteContent.substring(start, end);
+        const formatted = before + selected + after;
+        const newText = newNoteContent.substring(0, start) + formatted + newNoteContent.substring(end);
+        setNewNoteContent(newText);
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+        }, 0);
     };
 
   return (
@@ -693,7 +714,27 @@ export function LessonView() {
                         className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-4"
                         placeholder="Note title..."
                     />
+
+                    <div className="flex gap-1 mb-3">
+                        <button onClick={() => insertFormat('**', '**')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Bold">
+                            <Bold size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('*', '*')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Italic">
+                            <Italic size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('<u>', '</u>')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Underline">
+                            <Underline size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('- ', '')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Bullet List">
+                            <List size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('1. ', '')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Numbered List">
+                            <ListOrdered size={16} />
+                        </button>
+                    </div>
+
                     <textarea
+                        ref={textareaRef}
                         value={newNoteContent}
                         onChange={(e) => setNewNoteContent(e.target.value)}
                         className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
