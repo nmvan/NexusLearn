@@ -42,7 +42,13 @@ const Header = () => {
         {/* Logo Area */}
         <div 
           className="flex items-center gap-2 cursor-pointer" 
-          onClick={() => navigate('/')}
+          onClick={() => {
+            if (location.pathname === '/') {
+              window.location.reload();
+            } else {
+              navigate('/');
+            }
+          }}
         >
           <div className="h-8 w-8 rounded-lg bg-indigo-600 dark:bg-indigo-700 flex items-center justify-center shadow-md shadow-indigo-200 dark:shadow-[0_0_15px_rgba(67,56,202,0.5)]">
             <span className="text-white font-bold text-xl">N</span>

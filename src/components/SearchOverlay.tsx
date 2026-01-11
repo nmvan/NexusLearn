@@ -201,7 +201,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [showResults, setShowResults] = useState(false);
   
   // New state for search results
-  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
@@ -217,7 +217,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       setQuery('');
       setIsThinking(false);
       setShowResults(false);
-      setIsBeginnerMode(false);
+      setSelectedLevel('all');
       setSelectedCourseIds([]);
       setIsComparisonOpen(false);
       setVisibleCount(6);
@@ -231,6 +231,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
 
   const handleSearch = () => {
     if (!query.trim()) return;
+
     
     setIsThinking(true);
     setShowResults(false);
@@ -276,9 +277,9 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     }, 1000);
   };
 
-  const allFilteredCourses = isBeginnerMode 
-    ? MOCK_COURSES.filter(c => c.isBeginnerFriendly)
-    : MOCK_COURSES;
+  const allFilteredCourses = selectedLevel === 'all' 
+    ? MOCK_COURSES
+    : MOCK_COURSES.filter(c => c.level?.toLowerCase() === selectedLevel);
 
   const displayedCourses = allFilteredCourses.slice(0, visibleCount);
 
@@ -357,7 +358,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="w-full max-w-4xl relative"
+              className={`w-full max-w-4xl relative z-[60] pointer-events-auto transition-all duration-300 ${isSelectionMode ? 'mr-80' : ''}`}
             >
               <div className="relative flex items-center group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
@@ -381,7 +382,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             </motion.div>
 
             {/* Dynamic Content Area */}
-            <div className="w-full mt-8">
+            <div className="w-full mt-8 pointer-events-auto">
               <AnimatePresence mode="wait">
                 
                 {/* State 1: Suggestions */}
@@ -462,29 +463,19 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                       </div>
 
                       <div className="flex items-center gap-4">
-                        {/* Beginner Toggle */}
-                        <div 
-                          className="flex items-center gap-3 cursor-pointer group select-none"
-                          onClick={() => setIsBeginnerMode(!isBeginnerMode)}
-                        >
-                          <div className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
-                            isBeginnerMode 
-                              ? 'bg-cyan-950/50 border border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
-                              : 'bg-slate-900/50 border border-slate-700'
-                          }`}>
-                            <motion.div 
-                              className={`absolute top-1 left-1 w-3.5 h-3.5 rounded-full shadow-sm ${
-                                isBeginnerMode ? 'bg-cyan-400 shadow-cyan-400/50' : 'bg-slate-500'
-                              }`}
-                              animate={{ x: isBeginnerMode ? 24 : 0 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            />
-                          </div>
-                          <span className={`text-sm font-medium transition-colors ${
-                            isBeginnerMode ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300'
-                          }`}>
-                            Beginner Friendly
-                          </span>
+                        {/* Level Selector */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-400">Level:</span>
+                          <select
+                            value={selectedLevel}
+                            onChange={(e) => setSelectedLevel(e.target.value as 'all' | 'beginner' | 'intermediate' | 'advanced')}
+                            className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1 text-sm text-slate-300 focus:border-cyan-500 focus:outline-none"
+                          >
+                            <option value="all">All</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                          </select>
                         </div>
 
                         {/* Compare Controls */}
