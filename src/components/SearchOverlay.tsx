@@ -358,7 +358,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="w-full max-w-4xl relative z-[60] pointer-events-auto"
+              className={`w-full max-w-4xl relative z-[60] pointer-events-auto transition-all duration-300 ${isSelectionMode ? 'mr-80' : ''}`}
             >
               <div className="relative flex items-center group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
