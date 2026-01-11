@@ -141,7 +141,8 @@ export const AISidebar: React.FC<AISidebarProps> = ({ className }) => {
       title: "AI Note",
       timestamp: message.timestamp,
       content: message.content,
-      createdAt: new Date()
+      createdAt: new Date(),
+      courseId: '1', // Mock course ID - in a real app, this would come from current course context
     };
     
     addNote(newNote);

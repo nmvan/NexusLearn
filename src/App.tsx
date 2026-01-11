@@ -5,6 +5,8 @@ import { LandingPage, type Course } from './components/LandingPage';
 import { SubscriptionManagement } from './components/SubscriptionManagement';
 import { NoteCentral } from './components/NoteCentral';
 import { VideoProvider, useVideo } from './context/VideoContext';
+import { NotesProvider } from './context/NotesContext';
+import { CourseProvider } from './context/CourseContext';
 import { VideoPlayer } from './components/VideoPlayer';
 import { MyCourses } from './components/MyCourses';
 
@@ -132,8 +134,12 @@ function AppContent() {
 
 export function App() {
   return (
-    <VideoProvider>
-      <AppContent />
-    </VideoProvider>
+    <CourseProvider courses={MOCK_COURSES}>
+      <VideoProvider>
+        <NotesProvider>
+          <AppContent />
+        </NotesProvider>
+      </VideoProvider>
+    </CourseProvider>
   );
 }

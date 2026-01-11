@@ -648,6 +648,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                                         timestamp: currentTime,
                                         content: noteText.trim(),
                                         createdAt: new Date(),
+                                        courseId: '1', // Mock course ID - in a real app, this would come from current course context
                                     };
                                     addNote(newNote);
                                 }
@@ -750,6 +751,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                                       timestamp: currentTime,
                                       content: noteText.trim(),
                                       createdAt: new Date(),
+                                      courseId: '1', // Mock course ID - in a real app, this would come from current course context
                                   };
                                   addNote(newNote);
                               }
