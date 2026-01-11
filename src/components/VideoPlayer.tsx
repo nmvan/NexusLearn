@@ -1,10 +1,11 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Maximize2, Play, Pause, Volume2, VolumeX, X, FileText, Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useVideo } from '../context/VideoContext';
 import { useNotes } from '../context/NotesContext';
+import type { Note } from '../context/NotesContext';
 
 interface VideoPlayerProps {
   src: string;
@@ -12,9 +13,48 @@ interface VideoPlayerProps {
   isMiniPlayer?: boolean;
 }
 
-const VideoContent = ({ 
-    videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger 
-}: any) => (
+interface VideoContentProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  src: string;
+  isPlaying: boolean;
+  isMuted: boolean;
+  handleTimeUpdate: () => void;
+  togglePlay: () => void;
+  toggleMute: () => void;
+  progress: number;
+  handleSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isPipMode: boolean;
+  handleNoteTrigger: () => void;
+  notes: Note[];
+  duration: number;
+}
+
+const VideoContent: React.FC<VideoContentProps> = ({ 
+    videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger, notes, duration 
+}) => {
+  const [hoveredNote, setHoveredNote] = useState<Note | null>(null);
+  const [tooltipLeft, setTooltipLeft] = useState(0);
+  const [tooltipTop, setTooltipTop] = useState(-80);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const adjustedTooltipLeft = tooltipLeft < 15 ? 15 : tooltipLeft > 85 ? 85 : tooltipLeft;
+
+  useLayoutEffect(() => {
+    if (hoveredNote && tooltipRef.current) {
+      const height = tooltipRef.current.getBoundingClientRect().height;
+      setTooltipTop(-height - 10); // 10px margin from progress bar
+    } else {
+      setTooltipTop(-80); // default
+    }
+  }, [hoveredNote]);
+
+  return (
     <div className="relative w-full h-full group bg-black cursor-pointer" onClick={togglePlay}>
         <video
             ref={videoRef}
@@ -52,16 +92,41 @@ const VideoContent = ({
             )}
             onClick={(e) => e.stopPropagation()} // Prevent togglePlay when clicking controls
         >
-            {/* Progress Bar */}
-            <input
-                type="range"
-                min="0"
-                max="100"
-                value={progress || 0}
-                onChange={handleSeek}
-                className="w-full h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500 mb-4 hover:h-2 transition-all"
-                data-drag-ignore="true"
-            />
+            {/* Progress Bar with Markers */}
+            <div className="relative w-full mb-4">
+                <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={progress || 0}
+                    onChange={handleSeek}
+                    className="w-full h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:h-2 transition-all"
+                    data-drag-ignore="true"
+                />
+                {notes.map(note => {
+                    const left = duration ? (note.timestamp / duration) * 100 : 0;
+                    return (
+                        <div
+                            key={note.id}
+                            className="absolute top-1/2 w-3 h-3 bg-indigo-500 rounded-full transform -translate-x-1/2 cursor-pointer hover:bg-indigo-400 transition-colors"
+                            style={{ left: `${left}%` }}
+                            onMouseEnter={() => {
+                                setHoveredNote(note);
+                                setTooltipLeft(left);
+                            }}
+                            onMouseLeave={() => setHoveredNote(null)}
+                            data-drag-ignore="true"
+                        />
+                    );
+                })}
+                {/* Tooltip */}
+                {hoveredNote && (
+                    <div ref={tooltipRef} className="absolute bg-slate-800 text-white p-3 rounded-lg shadow-2xl border border-indigo-500/30 max-w-xs z-10 text-sm" style={{ left: `${adjustedTooltipLeft}%`, top: `${tooltipTop}px`, transform: 'translateX(-50%)' }}>
+                        <p className="text-gray-300 mb-1">Timestamp: {formatTime(hoveredNote.timestamp)}</p>
+                        <p>{hoveredNote.content}</p>
+                    </div>
+                )}
+            </div>
             
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -78,7 +143,8 @@ const VideoContent = ({
             </div>
         </div>
     </div>
-);
+  );
+};
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
   const { 
@@ -94,11 +160,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
   } = useVideo();
 
   const { addNote } = useNotes();
+  const { notes } = useNotes();
 
   const navigate = useNavigate();
   const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
   const [isPip, setIsPip] = useState(false);
     const [pipPosition, setPipPosition] = useState<{ x: number; y: number } | null>(null);
@@ -396,9 +464,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       const current = videoRef.current.currentTime;
-      const duration = videoRef.current.duration;
+      const dur = videoRef.current.duration;
       onTimeUpdate(current);
-      setProgress((current / duration) * 100);
+      setProgress((current / dur) * 100);
+      setDuration(dur);
     }
   };
 
@@ -442,6 +511,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
         handleSeek={handleSeek}
                 isPipMode={isPip}
                 handleNoteTrigger={handleNoteTrigger}
+                notes={notes}
+                duration={duration}
     />
   );
 
