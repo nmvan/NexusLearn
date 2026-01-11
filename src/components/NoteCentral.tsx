@@ -161,7 +161,13 @@ export const NoteCentral: React.FC = () => {
                           {note.title}
                         </div>
                         <div className="flex items-center space-x-1 text-xs text-slate-500 dark:text-slate-400">
-                          <span>Understanding Components</span>
+                          <button 
+                            onClick={() => navigate('/dashboard/lesson')}
+                            className="flex items-center space-x-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                          >
+                            <span>Understanding Components</span>
+                          </button>
+                          
                           <ChevronRight size={14} className="text-slate-600" />
                           <button 
                             onClick={() => handleTimestampClick(note.timestamp)}
@@ -192,13 +198,29 @@ export const NoteCentral: React.FC = () => {
               </h1>
               {selectedNote && (
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    {getCourseTitle(selectedNote.courseId || 'uncategorized')}
-                  </span>
+                  <button 
+                    onClick={() => navigate('/dashboard/lesson')}
+                    className="flex items-center space-x-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    <span className="text-sm">
+                      {getCourseTitle(selectedNote.courseId || 'uncategorized')}
+                    </span>
+                  </button>
+
                   <ChevronRight size={14} className="text-slate-600" />
-                  <span className="text-sm text-slate-500 dark:text-slate-400">React Basics</span>
+                  <button 
+                    onClick={() => navigate('/dashboard/lesson')}
+                    className="flex items-center space-x-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    <span className="text-sm">React Basics</span>
+                  </button>
                   <ChevronRight size={14} className="text-slate-600" />
-                  <span className="text-sm text-slate-500 dark:text-slate-400">Understanding Components</span>
+                  <button 
+                    onClick={() => navigate('/dashboard/lesson')}
+                    className="flex items-center space-x-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    <span className="text-sm">Understanding Components</span>
+                  </button>
                   <ChevronRight size={14} className="text-slate-600" />
                   <button 
                     onClick={() => handleTimestampClick(selectedNote.timestamp)}
