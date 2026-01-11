@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Maximize2, Play, Pause, Volume2, VolumeX, X, FileText } from 'lucide-react';
+import { Maximize2, Play, Pause, Volume2, VolumeX, X, FileText, Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useVideo } from '../context/VideoContext';
@@ -74,9 +74,6 @@ const VideoContent = ({
                     <button onClick={handleNoteTrigger} className="text-white hover:text-indigo-400 transition-colors" data-drag-ignore="true">
                         <FileText size={20} />
                     </button>
-                    <button onClick={handleNoteTrigger} className="text-white hover:text-indigo-400 transition-colors" data-drag-ignore="true">
-                        <FileText size={20} />
-                    </button>
                 </div>
             </div>
         </div>
@@ -117,6 +114,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
         isDragging: false,
         hasPointer: false
     });
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const dragInfoRef = useRef({
         startX: 0,
         startY: 0,
@@ -407,6 +405,27 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     setProgress(parseFloat(e.target.value));
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const insertFormat = (before: string, after: string = before) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = noteText.substring(start, end);
+    const formatted = before + selected + after;
+    const newText = noteText.substring(0, start) + formatted + noteText.substring(end);
+    setNoteText(newText);
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+    }, 0);
+  };
+
   const VideoContentElement = (
     <VideoContent 
         videoRef={videoRef}
@@ -499,7 +518,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                             ×
                         </button>
                     </div>
+                    <p className="text-sm text-gray-300 mb-2">Timestamp: {formatTime(currentTime)}</p>
+                    <div className="flex space-x-1 mb-2">
+                        <button onClick={() => insertFormat('**')} className="p-1 text-white hover:bg-slate-600 rounded" title="Bold">
+                            <Bold size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('*')} className="p-1 text-white hover:bg-slate-600 rounded" title="Italic">
+                            <Italic size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('<u>', '</u>')} className="p-1 text-white hover:bg-slate-600 rounded" title="Underline">
+                            <Underline size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('- ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Unordered List">
+                            <List size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('1. ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Ordered List">
+                            <ListOrdered size={16} />
+                        </button>
+                    </div>
                     <textarea
+                        ref={textareaRef}
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
                         className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
@@ -570,7 +608,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                           ×
                       </button>
                   </div>
+                  <p className="text-sm text-gray-300 mb-2">Timestamp: {formatTime(currentTime)}</p>
+                  <div className="flex space-x-1 mb-2">
+                      <button onClick={() => insertFormat('**')} className="p-1 text-white hover:bg-slate-600 rounded" title="Bold">
+                          <Bold size={16} />
+                      </button>
+                      <button onClick={() => insertFormat('*')} className="p-1 text-white hover:bg-slate-600 rounded" title="Italic">
+                          <Italic size={16} />
+                      </button>
+                      <button onClick={() => insertFormat('<u>', '</u>')} className="p-1 text-white hover:bg-slate-600 rounded" title="Underline">
+                          <Underline size={16} />
+                      </button>
+                      <button onClick={() => insertFormat('- ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Unordered List">
+                          <List size={16} />
+                      </button>
+                      <button onClick={() => insertFormat('1. ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Ordered List">
+                          <ListOrdered size={16} />
+                      </button>
+                  </div>
                   <textarea
+                      ref={textareaRef}
                       value={noteText}
                       onChange={(e) => setNoteText(e.target.value)}
                       className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
