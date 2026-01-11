@@ -178,7 +178,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'n' || e.key === 'N') {
+            if ((e.key === 'e' || e.key === 'E') && e.ctrlKey) {
                 e.preventDefault();
                 handleNoteTrigger();
             }
@@ -340,6 +340,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     }, [handleNoteEditorPointerMove, stopNoteEditorDragging, showNoteEditor]);
 
     const handleNoteEditorDragStart = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+        if (shouldIgnoreDrag(event.target)) {
+            return;
+        }
         if (!showNoteEditor) {
             return;
         }
@@ -364,7 +367,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
         info.offsetY = resolvedPosition.y;
         info.isDragging = false;
         info.hasPointer = true;
-    }, [showNoteEditor, noteEditorPosition]);
+    }, [showNoteEditor, noteEditorPosition, shouldIgnoreDrag]);
 
     const handleNoteEditorDragEnd = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
         if (!showNoteEditor) {
@@ -501,13 +504,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                         top: noteEditorPosition?.y || 0,
                         left: noteEditorPosition?.x || 0
                     }}
-                    onPointerDown={handleNoteEditorDragStart}
-                    onPointerUp={handleNoteEditorDragEnd}
-                    onPointerCancel={handleNoteEditorDragEnd}
                 >
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex justify-between items-center mb-2 cursor-grab active:cursor-grabbing"
+                         onPointerDown={handleNoteEditorDragStart}
+                         onPointerUp={handleNoteEditorDragEnd}
+                         onPointerCancel={handleNoteEditorDragEnd}>
                         <h3 className="text-lg font-semibold">Add Note</h3>
                         <button
+                            data-drag-ignore="true"
                             onClick={() => {
                                 setShowNoteEditor(false);
                                 setNoteText('');
@@ -591,13 +595,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                       top: noteEditorPosition?.y || 0,
                       left: noteEditorPosition?.x || 0
                   }}
-                  onPointerDown={handleNoteEditorDragStart}
-                  onPointerUp={handleNoteEditorDragEnd}
-                  onPointerCancel={handleNoteEditorDragEnd}
               >
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="flex justify-between items-center mb-2 cursor-grab active:cursor-grabbing"
+                       onPointerDown={handleNoteEditorDragStart}
+                       onPointerUp={handleNoteEditorDragEnd}
+                       onPointerCancel={handleNoteEditorDragEnd}>
                       <h3 className="text-lg font-semibold">Add Note</h3>
                       <button
+                          data-drag-ignore="true"
                           onClick={() => {
                               setShowNoteEditor(false);
                               setNoteText('');
