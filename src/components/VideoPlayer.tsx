@@ -27,10 +27,11 @@ interface VideoContentProps {
   handleNoteTrigger: () => void;
   notes: Note[];
   duration: number;
+  toggleFullscreen: () => void;
 }
 
 const VideoContent: React.FC<VideoContentProps> = ({ 
-    videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger, notes, duration 
+    videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger, notes, duration, toggleFullscreen 
 }) => {
   const [hoveredNote, setHoveredNote] = useState<Note | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState(0);
@@ -141,6 +142,11 @@ const VideoContent: React.FC<VideoContentProps> = ({
                         <FileText size={20} />
                     </button>
                 </div>
+                <div className="flex items-center">
+                    <button onClick={toggleFullscreen} className="text-white hover:text-indigo-400 transition-colors" data-drag-ignore="true">
+                        <Maximize2 size={20} />
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -177,6 +183,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     const [noteTitle, setNoteTitle] = useState('');
     const [wasPlaying, setWasPlaying] = useState(false);
     const [noteEditorPosition, setNoteEditorPosition] = useState<{ x: number; y: number } | null>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const noteEditorDragInfoRef = useRef({
         startX: 0,
         startY: 0,
@@ -198,6 +205,22 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     const dragSpeed = 1.25;
     // Keep PiP dimensions and margin centralized for drag calculations.
     const pipMetrics = useRef({ width: 320, height: 180, margin: 16 });
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      videoRef.current?.requestFullscreen().then(() => setIsFullscreen(true));
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false));
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   useEffect(() => {
     // Check for the portal root in LessonView
@@ -257,6 +280,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isPlaying, togglePlay]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [toggleFullscreen]);
 
     const handlePointerMove = useCallback((event: PointerEvent) => {
         const info = dragInfoRef.current;
@@ -516,6 +550,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                 handleNoteTrigger={handleNoteTrigger}
                 notes={notes}
                 duration={duration}
+                toggleFullscreen={toggleFullscreen}
     />
   );
 
