@@ -440,14 +440,14 @@ export function LessonView() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="hidden w-px self-stretch bg-slate-800/80 lg:flex">
+                            <div className="rounded-full w-px self-stretch lg:flex">
                                 <button
                                     type="button"
                                     onClick={() => setLabPanelWidth(labPanelWidth === 0 ? 50 : 0)}
-                                    className="h-full w-[18px] -ml-[9px] flex items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 cursor-pointer"
+                                    className="h-full -ml-[12px] flex items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 cursor-pointer bg-slate-800/60 hover:bg-slate-700/60 px-1 py-2 rounded-md"
                                     aria-label="Toggle lab panel"
                                 >
-                                    <span className="block h-20 w-[2px] rounded-full bg-current" />
+                                    {labPanelWidth === 0 ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                                 </button>
                             </div>
                             <div
