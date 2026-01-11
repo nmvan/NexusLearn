@@ -6,6 +6,22 @@ import { ComparisonModal } from './ComparisonModal';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface UserProfile {
+  preferredLanguage: string;
+  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  interests: string[];
+  maxBudget: number;
+  availableTimePerWeek: number;
+}
+
+const defaultUserProfile: UserProfile = {
+  preferredLanguage: 'English',
+  skillLevel: 'beginner',
+  interests: ['web development', 'programming'],
+  maxBudget: 100,
+  availableTimePerWeek: 10,
+};
+
 export interface Course extends Omit<CourseCardProps, 'onCompareToggle' | 'isSelectedForComparison' | 'className'> {}
 
 interface LandingPageProps {
@@ -145,6 +161,7 @@ export function LandingPage({ courses }: LandingPageProps) {
         isOpen={isComparisonOpen} 
         onClose={() => setIsComparisonOpen(false)} 
         courses={selectedCourses} 
+        userProfile={defaultUserProfile}
       />
     </div>
   );

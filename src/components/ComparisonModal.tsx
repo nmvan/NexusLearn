@@ -1,33 +1,135 @@
 import { createPortal } from 'react-dom';
-import { X, Check, Sparkles } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type CourseCardProps } from './CourseCard';
 import { cn } from '../lib/utils';
+
+interface UserProfile {
+  preferredLanguage: string;
+  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  interests: string[];
+  maxBudget: number;
+  availableTimePerWeek: number; // hours
+}
 
 interface ComparisonModalProps {
   isOpen: boolean;
   onClose: () => void;
   courses: CourseCardProps[];
+  userProfile: UserProfile;
 }
 
-export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalProps) {
-  // Helper to parse relative time to days
-  const getDaysAgo = (dateString: string): number => {
-    const value = parseInt(dateString);
-    if (dateString.includes('day')) return value;
-    if (dateString.includes('week')) return value * 7;
-    if (dateString.includes('month')) return value * 30;
-    if (dateString.includes('year')) return value * 365;
-    return 9999;
+export function ComparisonModal({ isOpen, onClose, courses, userProfile }: ComparisonModalProps) {
+  // If no courses, don't render
+  if (courses.length === 0) {
+    return null;
+  }
+  // Helper to parse time commitment to hours
+  const parseTime = (timeStr: string): number => {
+    const match = timeStr.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
   };
 
-  // Find the course with the best "Update-to-Price" ratio (approximated by most recent update)
-  // as per Use Case 3 requirements to avoid stale content.
-  const recommendedCourse = courses.reduce((prev, current) => {
-    const prevDays = getDaysAgo(prev.lastUpdated);
-    const currDays = getDaysAgo(current.lastUpdated);
-    return (prevDays < currDays) ? prev : current;
-  }, courses[0]);
+  // Calculate suitability score and reasons for a course based on user profile
+  const calculateSuitability = (course: CourseCardProps, user: UserProfile) => {
+    // Use the existing matchScore as the suitability score
+    const score = course.matchScore;
+    
+    let reasons: { text: string; detailed: string; positive: boolean }[] = [];
+
+    // Generate reasons based on user profile matching
+    const languageMatch = course.language?.toLowerCase() === user.preferredLanguage.toLowerCase();
+    if (languageMatch) {
+      reasons.push({
+        text: "✓ Matches your preferred language",
+        detailed: `This course is taught in ${course.language}, which matches your preferred language (${user.preferredLanguage}). Learning in your preferred language can improve comprehension and retention.`,
+        positive: true
+      });
+    } else {
+      reasons.push({
+        text: "✗ Language doesn't match your preference",
+        detailed: `This course is taught in ${course.language || 'an unknown language'}, but you prefer ${user.preferredLanguage}. Consider if you're comfortable learning in a different language.`,
+        positive: false
+      });
+    }
+
+    const levelMatch = course.level?.toLowerCase() === user.skillLevel;
+    if (levelMatch) {
+      reasons.push({
+        text: "✓ Matches your skill level",
+        detailed: `This course is designed for ${course.level} learners, which aligns with your ${user.skillLevel} skill level. This ensures the content pace and complexity are appropriate for you.`,
+        positive: true
+      });
+    } else {
+      reasons.push({
+        text: "✗ Skill level may not be ideal for you",
+        detailed: `This course targets ${course.level || 'unknown'} learners, but you're at a ${user.skillLevel} level. You might find it too challenging or too basic depending on the course content.`,
+        positive: false
+      });
+    }
+
+    const interestMatch = user.interests.some(interest =>
+      course.title.toLowerCase().includes(interest.toLowerCase()) ||
+      course.whatYouWillBuild.some(project => project.toLowerCase().includes(interest.toLowerCase()))
+    );
+    if (interestMatch) {
+      reasons.push({
+        text: "✓ Aligns with your interests",
+        detailed: `This course covers topics that match your interests in ${user.interests.join(', ')}. You'll be more engaged and motivated to complete a course that aligns with your goals.`,
+        positive: true
+      });
+    } else {
+      reasons.push({
+        text: "✗ May not align with your interests",
+        detailed: `This course may not directly relate to your interests in ${user.interests.join(', ')}. Consider if the skills you'll learn will help you achieve your broader goals.`,
+        positive: false
+      });
+    }
+
+    const budgetMatch = (course.price || 0) <= user.maxBudget;
+    if (budgetMatch) {
+      reasons.push({
+        text: "✓ Within your budget",
+        detailed: `This course costs $${course.price}, which fits within your maximum budget of $${user.maxBudget}. This allows you to invest in your learning without financial strain.`,
+        positive: true
+      });
+    } else {
+      reasons.push({
+        text: "✗ Exceeds your budget",
+        detailed: `This course costs $${course.price}, which exceeds your maximum budget of $${user.maxBudget}. Consider if the value justifies the investment or look for alternative funding options.`,
+        positive: false
+      });
+    }
+
+    const courseTime = parseTime(course.timeCommitment || '');
+    const timeMatch = courseTime <= user.availableTimePerWeek;
+    if (timeMatch) {
+      reasons.push({
+        text: "✓ Fits your available time",
+        detailed: `This course requires about ${courseTime} hours per week, which fits within your available ${user.availableTimePerWeek} hours. This ensures you can maintain a healthy work-life-learning balance.`,
+        positive: true
+      });
+    } else {
+      reasons.push({
+        text: "✗ May require more time than you have available",
+        detailed: `This course requires about ${courseTime} hours per week, but you only have ${user.availableTimePerWeek} hours available. Consider if you can adjust your schedule or if this course is right for your current commitments.`,
+        positive: false
+      });
+    }
+
+    return { score, reasons };
+  };
+
+  // Calculate suitability for all courses
+  const courseSuitabilities = courses.map(course => ({
+    ...course,
+    ...calculateSuitability(course, userProfile)
+  }));
+
+  // Find the recommended course (highest suitability score)
+  const recommendedCourse = courseSuitabilities.reduce((prev, curr) =>
+    prev.score > curr.score ? prev : curr
+  );
 
   return createPortal(
     <AnimatePresence>
@@ -61,7 +163,7 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
                     </span>
                   </h2>
                   <p className="text-slate-400 text-sm mt-1">
-                    AI analysis suggests the best fit based on your goals.
+                    AI analysis based on your profile and preferences.
                   </p>
                 </div>
                 <button 
@@ -80,7 +182,7 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
                   <div className="pt-4"></div>
 
                   {/* Course Headers */}
-                  {courses.map((course) => {
+                  {courseSuitabilities.map((course) => {
                     const isRecommended = course.id === recommendedCourse.id;
                     return (
                       <div key={course.id} className="relative flex flex-col gap-3">
@@ -102,122 +204,50 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
                     );
                   })}
 
-                  {/* Match Score Row */}
+                  {/* Suitability Score Row */}
                   <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
-                    Match Score
+                    Suitability Score
                   </div>
-                  {courses.map((course) => (
+                  {courseSuitabilities.map((course) => (
                     <div key={`score-${course.id}`} className="py-4 border-t border-slate-800/50">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
                           <div 
                             className={cn("h-full rounded-full", 
-                              course.matchScore >= 90 ? "bg-emerald-400" : 
-                              course.matchScore >= 70 ? "bg-cyan-400" : "bg-amber-400"
+                              course.score >= 80 ? "bg-emerald-400" : 
+                              course.score >= 60 ? "bg-cyan-400" : "bg-amber-400"
                             )}
-                            style={{ width: `${course.matchScore}%` }}
+                            style={{ width: `${course.score}%` }}
                           />
                         </div>
                         <span className={cn("font-bold",
-                          course.matchScore >= 90 ? "text-emerald-400" : 
-                          course.matchScore >= 70 ? "text-cyan-400" : "text-amber-400"
-                        )}>{course.matchScore}%</span>
+                          course.score >= 80 ? "text-emerald-400" : 
+                          course.score >= 60 ? "text-cyan-400" : "text-amber-400"
+                        )}>{course.score}%</span>
                       </div>
                     </div>
                   ))}
 
-                  {/* Price Row */}
-                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
-                    Price
-                  </div>
-                  {courses.map((course) => (
-                    <div key={`price-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300 font-medium">
-                      ${course.price}
-                    </div>
-                  ))}
-
-                  {/* Rating Row */}
-                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
-                    Rating
-                  </div>
-                  {courses.map((course) => (
-                    <div key={`rating-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
-                      <div className="flex items-center gap-1">
-                        <span className="text-amber-400">★</span>
-                        <span>{course.detailedRating}</span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Language Row */}
-                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
-                    Language
-                  </div>
-                  {courses.map((course) => (
-                    <div key={`lang-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
-                      {course.language}
-                    </div>
-                  ))}
-
-                  {/* Level Row */}
-                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
-                    Level
-                  </div>
-                  {courses.map((course) => (
-                    <div key={`level-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
-                      {course.level}
-                      {course.isBeginnerFriendly && (
-                        <span className="ml-2 text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                          Beginner Friendly
-                        </span>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Last Updated Row */}
-                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
-                    Last Updated
-                  </div>
-                  {courses.map((course) => {
-                    const courseDate = new Date(course.lastUpdated).getTime();
-                    const maxDate = Math.max(...courses.map(c => new Date(c.lastUpdated).getTime()));
-                    const isNewest = courseDate === maxDate;
-                    
-                    return (
-                      <div key={`updated-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
-                        <div className={cn("inline-flex items-center gap-2", isNewest && "text-emerald-400 font-medium")}>
-                          {course.lastUpdated}
-                          {isNewest && (
-                            <span className="text-xs bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
-                              Fresh
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Time Commitment Row */}
-                  <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50 flex items-center">
-                    Time Commitment
-                  </div>
-                  {courses.map((course) => (
-                    <div key={`time-${course.id}`} className="py-4 border-t border-slate-800/50 text-slate-300">
-                      {course.timeCommitment}
-                    </div>
-                  ))}
-
-                  {/* Key Projects Row */}
+                  {/* Reasons Row */}
                   <div className="font-semibold text-slate-300 py-4 border-t border-slate-800/50">
-                    Key Projects
+                    Why This Course?
                   </div>
-                  {courses.map((course) => (
-                    <div key={`projects-${course.id}`} className="py-4 border-t border-slate-800/50">
-                      <ul className="space-y-2">
-                        {course.whatYouWillBuild.map((project, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-slate-400">
-                            <Check className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
-                            <span>{project}</span>
+                  {courseSuitabilities.map((course) => (
+                    <div key={`reasons-${course.id}`} className="py-4 border-t border-slate-800/50">
+                      <ul className="space-y-1">
+                        {course.reasons.map((reason, idx) => (
+                          <li key={idx} className="relative group">
+                            <div className="flex items-start gap-2 text-sm text-slate-400 cursor-help">
+                              <span className="mt-0.5 shrink-0">{reason.positive ? '✓' : '✗'}</span>
+                              <span className={reason.positive ? 'text-emerald-400' : 'text-red-400'}>
+                                {reason.text.substring(2)}
+                              </span>
+                            </div>
+                            {/* Tooltip */}
+                            <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 w-64 p-3 bg-slate-800 border border-slate-700 rounded-lg shadow-lg text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 max-w-xs">
+                              {reason.detailed}
+                              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 border-l border-b border-slate-700 transform rotate-45"></div>
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -226,7 +256,7 @@ export function ComparisonModal({ isOpen, onClose, courses }: ComparisonModalPro
 
                   {/* Action Row */}
                   <div className="pt-4"></div>
-                  {courses.map((course) => (
+                  {courseSuitabilities.map((course) => (
                     <div key={`action-${course.id}`} className="pt-4">
                       <button className={cn(
                         "w-full py-2.5 rounded-lg font-medium transition-all",

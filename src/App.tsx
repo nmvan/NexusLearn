@@ -5,6 +5,8 @@ import { LandingPage, type Course } from './components/LandingPage';
 import { SubscriptionManagement } from './components/SubscriptionManagement';
 import { NoteCentral } from './components/NoteCentral';
 import { VideoProvider, useVideo } from './context/VideoContext';
+import { NotesProvider } from './context/NotesContext';
+import { CourseProvider } from './context/CourseContext';
 import { VideoPlayer } from './components/VideoPlayer';
 import { MyCourses } from './components/MyCourses';
 
@@ -89,6 +91,86 @@ const MOCK_COURSES: Course[] = [
     detailedRating: 4.8,
     price: 129,
   },
+  {
+    id: '6',
+    title: 'JavaScript Fundamentals',
+    instructor: 'John Doe',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?q=80&w=2070&auto=format&fit=crop',
+    matchScore: 80,
+    lastUpdated: '3 months ago',
+    timeCommitment: '15 hours',
+    whatYouWillBuild: ['Interactive Web Pages', 'DOM Manipulation Projects', 'JavaScript Games'],
+    level: 'Beginner',
+    language: 'English',
+    techStack: ['JavaScript'],
+    isBeginnerFriendly: true,
+    detailedRating: 4.6,
+    price: 39,
+  },
+  {
+    id: '7',
+    title: 'TypeScript Mastery',
+    instructor: 'Jane Smith',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop',
+    matchScore: 88,
+    lastUpdated: '1 month ago',
+    timeCommitment: '18 hours',
+    whatYouWillBuild: ['Type-Safe APIs', 'Advanced Type Patterns', 'Full-Stack TypeScript App'],
+    level: 'Intermediate',
+    language: 'English',
+    techStack: ['TypeScript'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.7,
+    price: 79,
+  },
+  {
+    id: '8',
+    title: 'Node.js Backend Development',
+    instructor: 'Mike Johnson',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?q=80&w=2070&auto=format&fit=crop',
+    matchScore: 92,
+    lastUpdated: '2 weeks ago',
+    timeCommitment: '25 hours',
+    whatYouWillBuild: ['RESTful API Server', 'Real-time Chat Application', 'File Upload System'],
+    level: 'Intermediate',
+    language: 'English',
+    techStack: ['Node.js', 'Express'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.8,
+    price: 99,
+  },
+  {
+    id: '9',
+    title: 'Database Design & SQL',
+    instructor: 'Sarah Wilson',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=2070&auto=format&fit=crop',
+    matchScore: 85,
+    lastUpdated: '4 months ago',
+    timeCommitment: '20 hours',
+    whatYouWillBuild: ['E-commerce Database', 'Social Media Schema', 'Analytics Dashboard'],
+    level: 'Intermediate',
+    language: 'English',
+    techStack: ['SQL', 'PostgreSQL'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.5,
+    price: 69,
+  },
+  {
+    id: '10',
+    title: 'REST API Design',
+    instructor: 'Alex Chen',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2070&auto=format&fit=crop',
+    matchScore: 90,
+    lastUpdated: '1 month ago',
+    timeCommitment: '14 hours',
+    whatYouWillBuild: ['RESTful Web Services', 'API Documentation', 'Authentication System'],
+    level: 'Intermediate',
+    language: 'English',
+    techStack: ['REST', 'JSON'],
+    isBeginnerFriendly: false,
+    detailedRating: 4.6,
+    price: 59,
+  },
 ];
 
 function AppContent() {
@@ -132,8 +214,12 @@ function AppContent() {
 
 export function App() {
   return (
-    <VideoProvider>
-      <AppContent />
-    </VideoProvider>
+    <CourseProvider courses={MOCK_COURSES}>
+      <VideoProvider>
+        <NotesProvider>
+          <AppContent />
+        </NotesProvider>
+      </VideoProvider>
+    </CourseProvider>
   );
 }

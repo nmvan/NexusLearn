@@ -13,7 +13,7 @@ export function LearningDashboard() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
-  const [hasPlan, setHasPlan] = useState(false);
+  const [hasPlan, setHasPlan] = useState(true);
 
   // Check if we are in lesson mode
   const handleSetGoal = (goal: string) => {

@@ -14,10 +14,18 @@ import {
     BookOpen,
     KeyRound,
     ExternalLink,
-    Sparkles
+    Sparkles,
+    Bold,
+    Italic,
+    Underline,
+    List,
+    ListOrdered,
+    Edit,
+    Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVideo } from '../context/VideoContext';
+import { useNotes, type Note } from '../context/NotesContext';
 import { LabWorkspace } from './LabWorkspace';
 
 // Updated Data to match the "React Mastery" context of the application
@@ -66,25 +74,6 @@ const LESSON_CONTENT = [
   { time: "04:10", title: "Your First Component" },
   { time: "05:37", title: "Importing and Exporting" },
   { time: "08:20", title: "Component Hierarchy" }
-];
-
-const STUDY_NOTES = [
-    {
-        title: "Props vs State",
-        points: [
-            "Props make components reusable; they are read-only inputs.",
-            "State tracks internal changes; keep it as local as possible.",
-            "Use lifting state up sparingly to avoid prop drilling."
-        ]
-    },
-    {
-        title: "Component Checklist",
-        points: [
-            "Name components based on intent, not implementation details.",
-            "Group related JSX into smaller pure components when markup grows.",
-            "Prefer composition over inheritance for cross-cutting behaviors."
-        ]
-    }
 ];
 
 const LAB_GUIDE = [
@@ -181,11 +170,19 @@ export function LessonView() {
   const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { setVideoTarget } = useVideo();
+  const { notes: allNotes, addNote, editNote, deleteNote } = useNotes();
+  const notes = allNotes.filter(note => note.courseId === '1');
+  const { seekTo, currentTime, isPlaying, togglePlay } = useVideo();
     const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'resources' | 'labs'>('overview');
     const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(null);
-    const [labPanelWidth, setLabPanelWidth] = useState(45);
-    const [isResizing, setIsResizing] = useState(false);
+    const [labPanelWidth, setLabPanelWidth] = useState(50);
+    const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+    const [newNoteTitle, setNewNoteTitle] = useState('');
+    const [newNoteContent, setNewNoteContent] = useState('');
+    const [wasPlaying, setWasPlaying] = useState(false);
+    const [editingNote, setEditingNote] = useState<Note | null>(null);
     const labLayoutRef = useRef<HTMLDivElement | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const handlePortalRef = useCallback((node: HTMLDivElement | null) => {
         setVideoContainer(node ?? null);
@@ -211,55 +208,43 @@ export function LessonView() {
         }
     }, [activeTab, isSidebarOpen]);
 
-    useEffect(() => {
-        if (activeTab !== 'labs' && isResizing) {
-            setIsResizing(false);
-        }
-    }, [activeTab, isResizing]);
-
-    // Enable dragging the divider to resize lab panes when the tab is active.
-    useEffect(() => {
-        if (!isResizing) {
-            return;
-        }
-
-        const handlePointerMove = (event: PointerEvent) => {
-            const container = labLayoutRef.current;
-            if (!container) {
-                return;
-            }
-
-            const bounds = container.getBoundingClientRect();
-            const relativeX = event.clientX - bounds.left;
-            const minWidth = 30;
-            const maxWidth = 70;
-            const percentage = (relativeX / bounds.width) * 100;
-            setLabPanelWidth(Math.min(Math.max(percentage, minWidth), maxWidth));
-        };
-
-        const handlePointerUp = () => {
-            setIsResizing(false);
-        };
-
-        window.addEventListener('pointermove', handlePointerMove);
-        window.addEventListener('pointerup', handlePointerUp);
-
-        return () => {
-            window.removeEventListener('pointermove', handlePointerMove);
-            window.removeEventListener('pointerup', handlePointerUp);
-        };
-    }, [isResizing]);
-
-    const startResize = useCallback(() => {
-        if (activeTab !== 'labs') {
-            return;
-        }
-        setIsResizing(true);
-    }, [activeTab]);
-
     const handleStartInteractiveQuiz = useCallback(() => {
         navigate('/dashboard/lesson/interactive-quiz');
     }, [navigate]);
+
+    const handleEditNote = (note: Note) => {
+        setEditingNote(note);
+        setNewNoteTitle(note.title);
+        setNewNoteContent(note.content);
+        setWasPlaying(isPlaying);
+        if (isPlaying) togglePlay();
+        setShowAddNoteModal(true);
+    };
+
+    const handleDeleteNote = (noteId: string) => {
+        deleteNote(noteId);
+    };
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const insertFormat = (before: string, after: string = before) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = newNoteContent.substring(start, end);
+        const formatted = before + selected + after;
+        const newText = newNoteContent.substring(0, start) + formatted + newNoteContent.substring(end);
+        setNewNoteContent(newText);
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+        }, 0);
+    };
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-50 overflow-hidden font-sans">
@@ -455,16 +440,14 @@ export function LessonView() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="hidden w-px self-stretch bg-slate-800/80 lg:flex">
+                            <div className="rounded-full w-px self-stretch lg:flex">
                                 <button
                                     type="button"
-                                    onPointerDown={startResize}
-                                    className={`h-full w-[18px] -ml-[9px] flex items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 ${
-                                        isResizing ? 'cursor-col-resize text-indigo-300' : 'cursor-col-resize'
-                                    }`}
-                                    aria-label="Adjust layout width"
+                                    onClick={() => setLabPanelWidth(labPanelWidth === 0 ? 50 : 0)}
+                                    className="h-full -ml-[12px] flex items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 cursor-pointer bg-slate-800/60 hover:bg-slate-700/60 px-1 py-2 rounded-md"
+                                    aria-label="Toggle lab panel"
                                 >
-                                    <span className="block h-20 w-[2px] rounded-full bg-current" />
+                                    {labPanelWidth === 0 ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                                 </button>
                             </div>
                             <div
@@ -531,22 +514,60 @@ export function LessonView() {
                                 {activeTab === 'notes' && (
                                     <div className="space-y-6">
                                         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-                                            <h2 className="text-xl font-semibold text-white mb-3">Personal Notes</h2>
-                                            <p className="text-sm text-slate-400">Capture the mental model behind this lesson. These notes stay synced with your learning profile.</p>
-                                        </div>
-                                        {STUDY_NOTES.map(note => (
-                                            <div key={note.title} className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6">
-                                                <h3 className="text-lg font-semibold text-white mb-4">{note.title}</h3>
-                                                <ul className="space-y-2 text-sm text-slate-400">
-                                                    {note.points.map(point => (
-                                                        <li key={point} className="flex items-start gap-2">
-                                                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                                                            <span>{point}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h2 className="text-xl font-semibold text-white mb-3">Personal Notes</h2>
+                                                    <p className="text-sm text-slate-400">Capture the mental model behind this lesson. These notes stay synced with your learning profile.</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setWasPlaying(isPlaying);
+                                                        if (isPlaying) togglePlay();
+                                                        setShowAddNoteModal(true);
+                                                    }}
+                                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
+                                                >
+                                                    Add Note
+                                                </button>
                                             </div>
-                                        ))}
+                                        </div>
+                                        {notes.length > 0 ? notes.map(note => (
+                                            <div key={note.id} className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6 cursor-pointer hover:bg-slate-800/30 transition-colors group" onClick={() => seekTo(note.timestamp)}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="text-lg font-semibold text-white">{note.title || 'Untitled Note'}</h3>
+                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleEditNote(note);
+                                                                }}
+                                                                className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-indigo-400 transition-colors"
+                                                                title="Edit note"
+                                                            >
+                                                                <Edit size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteNote(note.id);
+                                                                }}
+                                                                className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-red-400 transition-colors"
+                                                                title="Delete note"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <span className="font-mono text-indigo-400 min-w-[45px] bg-indigo-500/10 px-1.5 py-0.5 rounded text-center">{formatTime(note.timestamp)}</span>
+                                                </div>
+                                                <p className="text-sm text-slate-400">{note.content}</p>
+                                            </div>
+                                        )) : (
+                                            <div className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-6 text-center">
+                                                <p className="text-slate-400">No notes yet. Add notes while watching the video!</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -671,6 +692,96 @@ export function LessonView() {
             </div>
             <span className="font-bold pr-1">Nexus AI Tutor</span>
         </button>
+
+        {/* Add Note Modal */}
+        {showAddNoteModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-slate-800 text-white p-6 rounded-lg shadow-2xl border border-indigo-500/30 w-96">
+                    <h3 className="text-lg font-semibold mb-4">{editingNote ? 'Edit Note' : 'Add New Note'}</h3>
+                    {!editingNote && <p className="text-sm text-gray-300 mb-4">Timestamp: {formatTime(currentTime)}</p>}
+                    {editingNote && <p className="text-sm text-gray-300 mb-4">Original Timestamp: {formatTime(editingNote.timestamp)}</p>}
+                    <input
+                        type="text"
+                        value={newNoteTitle}
+                        onChange={(e) => setNewNoteTitle(e.target.value)}
+                        className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-4"
+                        placeholder="Note title..."
+                    />
+
+                    <div className="flex gap-1 mb-3">
+                        <button onClick={() => insertFormat('**', '**')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Bold">
+                            <Bold size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('*', '*')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Italic">
+                            <Italic size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('<u>', '</u>')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Underline">
+                            <Underline size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('- ', '')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Bullet List">
+                            <List size={16} />
+                        </button>
+                        <button onClick={() => insertFormat('1. ', '')} className="p-1.5 hover:bg-slate-600 rounded text-gray-300 hover:text-white transition-colors" title="Numbered List">
+                            <ListOrdered size={16} />
+                        </button>
+                    </div>
+
+                    <textarea
+                        ref={textareaRef}
+                        value={newNoteContent}
+                        onChange={(e) => setNewNoteContent(e.target.value)}
+                        className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
+                        placeholder="Note content..."
+                    />
+                    <div className="flex justify-end space-x-2 mt-4">
+                        <button
+                            onClick={() => {
+                                setShowAddNoteModal(false);
+                                setNewNoteTitle('');
+                                setNewNoteContent('');
+                                setEditingNote(null);
+                                if (wasPlaying) togglePlay();
+                                setWasPlaying(false);
+                            }}
+                            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (newNoteContent.trim()) {
+                                    if (editingNote) {
+                                        editNote(editingNote.id, {
+                                            title: newNoteTitle.trim() || 'Untitled Note',
+                                            content: newNoteContent.trim(),
+                                        });
+                                    } else {
+                                        const newNote = {
+                                            id: Date.now().toString(),
+                                            title: newNoteTitle.trim() || 'Untitled Note',
+                                            timestamp: currentTime,
+                                            content: newNoteContent.trim(),
+                                            createdAt: new Date(),
+                                            courseId: '1', // Mock course ID - in a real app, this would come from current course context
+                                        };
+                                        addNote(newNote);
+                                    }
+                                }
+                                setShowAddNoteModal(false);
+                                setNewNoteTitle('');
+                                setNewNoteContent('');
+                                setEditingNote(null);
+                                if (wasPlaying) togglePlay();
+                                setWasPlaying(false);
+                            }}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                        >
+                            {editingNote ? 'Update' : 'Save'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
       </div>
     </div>
   );
