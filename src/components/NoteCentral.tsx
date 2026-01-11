@@ -179,7 +179,12 @@ export const NoteCentral: React.FC = () => {
                   <span className="text-sm text-slate-500 dark:text-slate-400">
                     {getCourseTitle(selectedNote.courseId || 'uncategorized')}
                   </span>
-                  <span className="text-slate-300">•</span>
+                  {/* phần này hard code, cần dữ liệu mock */}
+                  <ChevronRight size={14} className="text-slate-600" />
+                  <span className="text-sm text-slate-500 dark:text-slate-400">React Basics</span>
+                  <ChevronRight size={14} className="text-slate-600" />
+                  <span className="text-sm text-slate-500 dark:text-slate-400">Understanding Components</span>
+                  <ChevronRight size={14} className="text-slate-600" />
                   <button 
                     onClick={() => seekTo(selectedNote.timestamp)}
                     className="flex items-center space-x-1 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
@@ -228,7 +233,7 @@ export const NoteCentral: React.FC = () => {
           )}
 
           {selectedNote ? (
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+            <div className="bg-white h-full dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
               <div className="prose prose-invert max-w-none">
                 <div className="whitespace-pre-wrap text-slate-900 dark:text-slate-300 leading-relaxed">
                   {selectedNote.content}
