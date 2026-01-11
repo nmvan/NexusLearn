@@ -175,8 +175,7 @@ export function LessonView() {
   const { seekTo, currentTime, isPlaying, togglePlay } = useVideo();
     const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'resources' | 'labs'>('overview');
     const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(null);
-    const [labPanelWidth, setLabPanelWidth] = useState(45);
-    const [isResizing, setIsResizing] = useState(false);
+    const [labPanelWidth, setLabPanelWidth] = useState(50);
     const [showAddNoteModal, setShowAddNoteModal] = useState(false);
     const [newNoteTitle, setNewNoteTitle] = useState('');
     const [newNoteContent, setNewNoteContent] = useState('');
@@ -208,52 +207,6 @@ export function LessonView() {
             setSidebarOpen(false);
         }
     }, [activeTab, isSidebarOpen]);
-
-    useEffect(() => {
-        if (activeTab !== 'labs' && isResizing) {
-            setIsResizing(false);
-        }
-    }, [activeTab, isResizing]);
-
-    // Enable dragging the divider to resize lab panes when the tab is active.
-    useEffect(() => {
-        if (!isResizing) {
-            return;
-        }
-
-        const handlePointerMove = (event: PointerEvent) => {
-            const container = labLayoutRef.current;
-            if (!container) {
-                return;
-            }
-
-            const bounds = container.getBoundingClientRect();
-            const relativeX = event.clientX - bounds.left;
-            const minWidth = 0;
-            const maxWidth = 70;
-            const percentage = (relativeX / bounds.width) * 100;
-            setLabPanelWidth(Math.min(Math.max(percentage, minWidth), maxWidth));
-        };
-
-        const handlePointerUp = () => {
-            setIsResizing(false);
-        };
-
-        window.addEventListener('pointermove', handlePointerMove);
-        window.addEventListener('pointerup', handlePointerUp);
-
-        return () => {
-            window.removeEventListener('pointermove', handlePointerMove);
-            window.removeEventListener('pointerup', handlePointerUp);
-        };
-    }, [isResizing]);
-
-    const startResize = useCallback(() => {
-        if (activeTab !== 'labs') {
-            return;
-        }
-        setIsResizing(true);
-    }, [activeTab]);
 
     const handleStartInteractiveQuiz = useCallback(() => {
         navigate('/dashboard/lesson/interactive-quiz');
@@ -490,11 +443,9 @@ export function LessonView() {
                             <div className="hidden w-px self-stretch bg-slate-800/80 lg:flex">
                                 <button
                                     type="button"
-                                    onPointerDown={startResize}
-                                    className={`h-full w-[18px] -ml-[9px] flex items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 ${
-                                        isResizing ? 'cursor-col-resize text-indigo-300' : 'cursor-col-resize'
-                                    }`}
-                                    aria-label="Adjust layout width"
+                                    onClick={() => setLabPanelWidth(labPanelWidth === 0 ? 50 : 0)}
+                                    className="h-full w-[18px] -ml-[9px] flex items-center justify-center text-slate-700 transition-colors hover:text-indigo-300 cursor-pointer"
+                                    aria-label="Toggle lab panel"
                                 >
                                     <span className="block h-20 w-[2px] rounded-full bg-current" />
                                 </button>
