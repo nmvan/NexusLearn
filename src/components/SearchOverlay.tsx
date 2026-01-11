@@ -4,6 +4,22 @@ import { Search, Sparkles, ArrowRight, BrainCircuit } from 'lucide-react';
 import { CourseCard, type CourseCardProps } from './CourseCard';
 import { ComparisonModal } from './ComparisonModal';
 
+interface UserProfile {
+  preferredLanguage: string;
+  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  interests: string[];
+  maxBudget: number;
+  availableTimePerWeek: number;
+}
+
+const defaultUserProfile: UserProfile = {
+  preferredLanguage: 'English',
+  skillLevel: 'beginner',
+  interests: ['web development', 'programming'],
+  maxBudget: 100,
+  availableTimePerWeek: 10,
+};
+
 interface SearchOverlayProps {
   isOpen: boolean;
   onClose: () => void;
@@ -534,6 +550,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             isOpen={isComparisonOpen}
             onClose={() => setIsComparisonOpen(false)}
             courses={selectedCourses}
+            userProfile={defaultUserProfile}
           />
         </motion.div>
       )}
