@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Maximize2, Play, Pause, Volume2, VolumeX, X, FileText, Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
+import { Maximize2, Minimize2, PictureInPicture2, Play, Pause, Volume2, VolumeX, X, FileText, Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useVideo } from '../context/VideoContext';
@@ -28,10 +28,14 @@ interface VideoContentProps {
   notes: Note[];
   duration: number;
   toggleFullscreen: () => void;
+    containerRef: React.RefObject<HTMLDivElement | null>;
+    isFullscreen: boolean;
+    onMiniPlayerToggle: () => void;
+    isMiniPlayerActive: boolean;
 }
 
 const VideoContent: React.FC<VideoContentProps> = ({ 
-    videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger, notes, duration, toggleFullscreen 
+        videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger, notes, duration, toggleFullscreen, containerRef, isFullscreen, onMiniPlayerToggle, isMiniPlayerActive 
 }) => {
   const [hoveredNote, setHoveredNote] = useState<Note | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState(0);
@@ -55,24 +59,48 @@ const VideoContent: React.FC<VideoContentProps> = ({
     }
   }, [hoveredNote]);
 
-  return (
-    <div className="relative w-full h-full group bg-black cursor-pointer" onClick={togglePlay}>
-        <video
-            ref={videoRef}
-            src={src}
-            className="w-full h-full object-contain"
-            onTimeUpdate={handleTimeUpdate}
-            muted={isMuted}
-            loop
-            playsInline
-        />
+    const [videoError, setVideoError] = useState<string | null>(null);
+
+    const handleVideoError = useCallback(() => {
+        setVideoError('Video failed to load or play. Please try again.');
+    }, []);
+
+    const retryPlayback = useCallback(() => {
+        setVideoError(null);
+        const el = videoRef.current;
+        if (!el) return;
+        try {
+            el.load();
+            // Attempt play only on user gesture; button triggers this
+            el.play().catch(() => {
+                // Fall back to showing big play button
+            });
+        } catch {
+            // noop
+        }
+    }, [videoRef]);
+
+    return (
+        <div ref={containerRef} className="relative w-full h-full group bg-black cursor-pointer" onClick={togglePlay}>
+                <video
+                        ref={videoRef}
+                        src={src}
+                        className="w-full h-full object-contain"
+                        onTimeUpdate={handleTimeUpdate}
+                        onLoadedMetadata={handleTimeUpdate}
+                        onError={handleVideoError}
+                        muted={isMuted}
+                        loop
+                        playsInline
+                        crossOrigin="anonymous"
+                />
         
         {/* Big Play Button (Centered) */}
         {!isPlaying && (
             <button
                 type="button"
                 aria-label="Play video"
-                className="absolute inset-0 flex items-center justify-center focus:outline-none"
+                className="absolute inset-0 z-20 flex items-center justify-center focus:outline-none"
                 onClick={(event) => {
                     event.stopPropagation();
                     togglePlay();
@@ -88,13 +116,12 @@ const VideoContent: React.FC<VideoContentProps> = ({
         {/* Controls Overlay */}
         <div 
             className={cn(
-                "absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity flex flex-col justify-end p-4",
+                "absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity flex flex-col justify-end p-4 pointer-events-none",
                 !isPlaying || isPipMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             )}
-            onClick={(e) => e.stopPropagation()} // Prevent togglePlay when clicking controls
         >
             {/* Progress Bar with Markers */}
-            <div className="relative w-full mb-4">
+            <div className="relative w-full mb-4 pointer-events-auto">
                 <input
                     type="range"
                     min="0"
@@ -130,24 +157,78 @@ const VideoContent: React.FC<VideoContentProps> = ({
                 )}
             </div>
             
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pointer-events-auto">
                 <div className="flex items-center space-x-4">
-                    <button onClick={togglePlay} className="text-white hover:text-indigo-400 transition-colors" data-drag-ignore="true">
+                    <button
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            togglePlay();
+                        }}
+                        className="text-white hover:text-indigo-400 transition-colors"
+                        data-drag-ignore="true"
+                    >
                         {isPlaying ? <Pause size={20} /> : <Play size={20} />}
                     </button>
-                    <button onClick={toggleMute} className="text-white hover:text-indigo-400 transition-colors" data-drag-ignore="true">
+                    <button
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            toggleMute();
+                        }}
+                        className="text-white hover:text-indigo-400 transition-colors"
+                        data-drag-ignore="true"
+                    >
                         {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                     </button>
-                    <button onClick={handleNoteTrigger} className="text-white hover:text-indigo-400 transition-colors" data-drag-ignore="true">
+                    <button
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            handleNoteTrigger();
+                        }}
+                        className="text-white hover:text-indigo-400 transition-colors"
+                        data-drag-ignore="true"
+                    >
                         <FileText size={20} />
                     </button>
                 </div>
-                <div className="flex items-center">
-                    <button onClick={toggleFullscreen} className="text-white hover:text-indigo-400 transition-colors" data-drag-ignore="true">
-                        <Maximize2 size={20} />
+                <div className="flex items-center space-x-3">
+                    <button
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onMiniPlayerToggle();
+                        }}
+                        className={cn("text-white hover:text-indigo-400 transition-colors", isMiniPlayerActive && "text-indigo-400")}
+                        data-drag-ignore="true"
+                        aria-pressed={isMiniPlayerActive}
+                        title={isMiniPlayerActive ? "Exit mini player" : "Enter mini player"}
+                    >
+                        <PictureInPicture2 size={20} />
+                    </button>
+                    <button
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            toggleFullscreen();
+                        }}
+                        className="text-white hover:text-indigo-400 transition-colors"
+                        data-drag-ignore="true"
+                        title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                    >
+                        {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
                     </button>
                 </div>
             </div>
+
+            {videoError && (
+              <div className="absolute inset-x-0 bottom-20 mx-auto w-fit text-center rounded-lg bg-red-500/20 border border-red-500/40 text-red-200 px-3 py-2 pointer-events-auto">
+                <p className="text-sm mb-2">{videoError}</p>
+                <button
+                  type="button"
+                  className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-500"
+                  onClick={(e) => { e.stopPropagation(); retryPlayback(); }}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
         </div>
     </div>
   );
@@ -173,17 +254,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
   const [isPip, setIsPip] = useState(false);
+    const [forceMiniPlayer, setForceMiniPlayer] = useState(false);
     const [pipPosition, setPipPosition] = useState<{ x: number; y: number } | null>(null);
     const [showNoteEditor, setShowNoteEditor] = useState(false);
     const [noteText, setNoteText] = useState('');
     const [noteTitle, setNoteTitle] = useState('');
     const [wasPlaying, setWasPlaying] = useState(false);
     const [noteEditorPosition, setNoteEditorPosition] = useState<{ x: number; y: number } | null>(null);
-    const [, setIsFullscreen] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const noteEditorDragInfoRef = useRef({
         startX: 0,
         startY: 0,
@@ -206,41 +289,77 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     // Keep PiP dimensions and margin centralized for drag calculations.
     const pipMetrics = useRef({ width: 320, height: 180, margin: 16 });
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      videoRef.current?.requestFullscreen().then(() => setIsFullscreen(true));
-    } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false));
-    }
-  };
+    const toggleFullscreen = useCallback(() => {
+        const target = containerRef.current;
+        if (!target) {
+            return;
+        }
+        if (!document.fullscreenElement) {
+            target.requestFullscreen?.().catch(() => {
+                // noop: browser denied fullscreen request
+            });
+            return;
+        }
+        if (document.fullscreenElement === target) {
+            document.exitFullscreen().catch(() => {
+                // noop: browser prevented exit
+            });
+            return;
+        }
+        document.exitFullscreen().catch(() => {
+            // noop
+        });
+    }, []);
 
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(document.fullscreenElement === containerRef.current);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
 
-  useEffect(() => {
-    // Check for the portal root in LessonView
-    const portalRoot = document.getElementById('video-portal-root');
-    
-    if (portalRoot) {
-      setMountNode(portalRoot);
-      setIsPip(false);
-    } else {
-      // Fallback to body (PIP mode) if playing but not in LessonView
-      setMountNode(document.body);
-      setIsPip(true);
-    }
-  }, [location.pathname]); // Re-check on navigation
+    useEffect(() => {
+        const portalRoot = document.getElementById('video-portal-root');
+        if (forceMiniPlayer || !portalRoot) {
+            setMountNode(document.body);
+            setIsPip(true);
+            return;
+        }
+        setMountNode(portalRoot);
+        setIsPip(false);
+    }, [location.pathname, forceMiniPlayer]);
 
     useEffect(() => {
         if (!isPip) {
             setPipPosition(null);
         }
     }, [isPip]);
+
+    const handleMiniPlayerToggle = useCallback(() => {
+        if (forceMiniPlayer) {
+            setForceMiniPlayer(false);
+            return;
+        }
+        const portalRoot = document.getElementById('video-portal-root');
+        if (portalRoot) {
+            setForceMiniPlayer(true);
+        }
+    }, [forceMiniPlayer]);
+
+    const handleRestoreFromMiniPlayer = useCallback(() => {
+        const portalRoot = document.getElementById('video-portal-root');
+        if (portalRoot) {
+            setForceMiniPlayer(false);
+            return;
+        }
+        navigate('/dashboard/lesson');
+    }, [navigate]);
+
+    const handleCloseVideo = useCallback(() => {
+        setForceMiniPlayer(false);
+        closeVideo();
+    }, [closeVideo]);
 
         const shouldIgnoreDrag = useCallback((target: EventTarget | null) => {
                 return target instanceof HTMLElement && target.closest('[data-drag-ignore="true"]');
@@ -551,6 +670,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                 notes={notes}
                 duration={duration}
                 toggleFullscreen={toggleFullscreen}
+                                containerRef={containerRef}
+                                isFullscreen={isFullscreen}
+                                onMiniPlayerToggle={handleMiniPlayerToggle}
+                                isMiniPlayerActive={isPip}
     />
   );
 
@@ -585,7 +708,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                     className="p-1 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-100 transition-colors"
                     onClick={(event) => {
                         event.stopPropagation();
-                        navigate('/dashboard/lesson');
+                        handleRestoreFromMiniPlayer();
                     }}
                     title="Restore player"
                     data-drag-ignore="true"
@@ -597,7 +720,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                     className="p-1 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-100 transition-colors"
                     onClick={(event) => {
                         event.stopPropagation();
-                        closeVideo();
+                        handleCloseVideo();
                     }}
                     title="Close player"
                     data-drag-ignore="true"
