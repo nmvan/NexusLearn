@@ -3,6 +3,7 @@ import { X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type CourseCardProps } from './CourseCard';
 import { cn } from '../lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfile {
   preferredLanguage: string;
@@ -20,6 +21,8 @@ interface ComparisonModalProps {
 }
 
 export function ComparisonModal({ isOpen, onClose, courses, userProfile }: ComparisonModalProps) {
+  const navigate = useNavigate();
+  
   // If no courses, don't render
   if (courses.length === 0) {
     return null;
@@ -258,7 +261,11 @@ export function ComparisonModal({ isOpen, onClose, courses, userProfile }: Compa
                   <div className="pt-4"></div>
                   {courseSuitabilities.map((course) => (
                     <div key={`action-${course.id}`} className="pt-4">
-                      <button className={cn(
+                      <button 
+                        onClick={() => {
+                          navigate('/dashboard');
+                        }}
+                        className={cn(
                         "w-full py-2.5 rounded-lg font-medium transition-all",
                         course.id === recommendedCourse.id
                           ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25"
