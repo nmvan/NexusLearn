@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNotes } from '../context/NotesContext';
 import { useCourses } from '../context/CourseContext';
 import { useVideo } from '../context/VideoContext';
-import { Download, FileText, Sparkles, Trash2, PlayCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Download, FileText, Sparkles, Trash2, PlayCircle, ChevronDown, ChevronRight, Search } from 'lucide-react';
 
 export const NoteCentral: React.FC = () => {
   const { notes, deleteNote } = useNotes();
@@ -12,6 +12,7 @@ export const NoteCentral: React.FC = () => {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -19,15 +20,26 @@ export const NoteCentral: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Group notes by courseId
-  const notesByCourse = notes.reduce((acc, note) => {
+  // Filter notes based on search term
+  const filteredNotes = notes.filter(note =>
+    note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    note.content.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Group filtered notes by courseId
+  const notesByCourse = filteredNotes.reduce((acc, note) => {
     const courseId = note.courseId || 'uncategorized';
     if (!acc[courseId]) {
       acc[courseId] = [];
     }
     acc[courseId].push(note);
     return acc;
-  }, {} as Record<string, typeof notes>);
+  }, {} as Record<string, typeof filteredNotes>);
+
+  // Auto-expand courses that have filtered notes when searching
+  const effectiveExpandedCourses = searchTerm.trim()
+    ? new Set(Object.keys(notesByCourse))
+    : expandedCourses;
 
   // Get course title by id
   const getCourseTitle = (courseId: string) => {
@@ -36,12 +48,12 @@ export const NoteCentral: React.FC = () => {
     return course ? course.title : `Course ${courseId}`;
   };
 
-  // Select first note if none selected
+  // Select first note if none selected or if current selection is not in filtered results
   useEffect(() => {
-    if (notes.length > 0 && !selectedNoteId) {
-      setSelectedNoteId(notes[0].id);
+    if (filteredNotes.length > 0 && (!selectedNoteId || !filteredNotes.find(note => note.id === selectedNoteId))) {
+      setSelectedNoteId(filteredNotes[0].id);
     }
-  }, [notes, selectedNoteId]);
+  }, [filteredNotes, selectedNoteId]);
 
   const selectedNote = notes.find(note => note.id === selectedNoteId);
 
@@ -89,6 +101,20 @@ export const NoteCentral: React.FC = () => {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Notes</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">Select a note to view</p>
         </div>
+
+        {/* Search Bar */}
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search notes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        </div>
         
         <div className="flex-1 overflow-y-auto">
           {Object.keys(notesByCourse).length === 0 ? (
@@ -106,14 +132,14 @@ export const NoteCentral: React.FC = () => {
                   <span className="font-medium text-slate-900 dark:text-slate-100">
                     {getCourseTitle(courseId)}
                   </span>
-                  {expandedCourses.has(courseId) ? (
+                  {effectiveExpandedCourses.has(courseId) ? (
                     <ChevronDown size={16} className="text-slate-400" />
                   ) : (
                     <ChevronRight size={16} className="text-slate-400" />
                   )}
                 </button>
                 
-                {expandedCourses.has(courseId) && (
+                {effectiveExpandedCourses.has(courseId) && (
                   <div className="bg-slate-50 dark:bg-slate-900/50">
                     {courseNotes.map((note) => (
                       <button

@@ -168,7 +168,8 @@ export function LessonView() {
   const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { setVideoTarget } = useVideo();
-  const { notes, addNote } = useNotes();
+  const { notes: allNotes, addNote } = useNotes();
+  const notes = allNotes.filter(note => note.courseId === '1');
   const { seekTo, currentTime, isPlaying, togglePlay } = useVideo();
     const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'resources' | 'labs'>('overview');
     const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(null);

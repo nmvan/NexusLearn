@@ -161,7 +161,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
   } = useVideo();
 
   const { addNote } = useNotes();
-  const { notes } = useNotes();
+  const { notes: allNotes } = useNotes();
+  const notes = allNotes.filter(note => note.courseId === '1');
 
   const navigate = useNavigate();
   const location = useLocation();
