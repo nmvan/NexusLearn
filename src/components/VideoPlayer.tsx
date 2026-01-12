@@ -654,6 +654,104 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     }, 0);
   };
 
+    const handleNoteEditorClose = useCallback(() => {
+        setShowNoteEditor(false);
+        setNoteText('');
+        setNoteTitle('');
+        if (wasPlaying) {
+            togglePlay();
+        }
+    }, [togglePlay, wasPlaying]);
+
+    const handleNoteEditorSave = useCallback(() => {
+        if (!noteText.trim()) {
+            handleNoteEditorClose();
+            return;
+        }
+        addNote({
+            id: Date.now().toString(),
+            title: noteTitle.trim(),
+            timestamp: currentTime,
+            content: noteText.trim(),
+            createdAt: new Date(),
+            courseId: '1',
+        });
+        handleNoteEditorClose();
+    }, [addNote, currentTime, handleNoteEditorClose, noteText, noteTitle]);
+
+    const renderNoteEditor = (position: 'fixed' | 'absolute') => (
+        <div
+            className={`${position} bg-slate-800 text-white p-4 rounded-lg shadow-2xl border border-indigo-500/30 z-50 w-80 cursor-grab active:cursor-grabbing`}
+            style={{
+                top: noteEditorPosition?.y || 0,
+                left: noteEditorPosition?.x || 0
+            }}
+            onClick={(event) => event.stopPropagation()}
+        >
+            <div
+                className="flex justify-between items-center mb-2 cursor-grab active:cursor-grabbing"
+                onPointerDown={handleNoteEditorDragStart}
+                onPointerUp={handleNoteEditorDragEnd}
+                onPointerCancel={handleNoteEditorDragEnd}
+            >
+                <h3 className="text-lg font-semibold">Add Note</h3>
+                <button
+                    data-drag-ignore="true"
+                    onClick={handleNoteEditorClose}
+                    className="text-white hover:text-gray-300 text-xl leading-none"
+                >
+                    ×
+                </button>
+            </div>
+            <p className="text-sm text-gray-300 mb-2">Timestamp: {formatTime(currentTime)}</p>
+            <input
+                type="text"
+                value={noteTitle}
+                onChange={(e) => setNoteTitle(e.target.value)}
+                className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-2"
+                placeholder="Enter note title..."
+            />
+            <div className="flex space-x-1 mb-2">
+                <button onClick={() => insertFormat('**')} className="p-1 text-white hover:bg-slate-600 rounded" title="Bold">
+                    <Bold size={16} />
+                </button>
+                <button onClick={() => insertFormat('*')} className="p-1 text-white hover:bg-slate-600 rounded" title="Italic">
+                    <Italic size={16} />
+                </button>
+                <button onClick={() => insertFormat('<u>', '</u>')} className="p-1 text-white hover:bg-slate-600 rounded" title="Underline">
+                    <Underline size={16} />
+                </button>
+                <button onClick={() => insertFormat('- ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Unordered List">
+                    <List size={16} />
+                </button>
+                <button onClick={() => insertFormat('1. ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Ordered List">
+                    <ListOrdered size={16} />
+                </button>
+            </div>
+            <textarea
+                ref={textareaRef}
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
+                placeholder="Enter your note..."
+            />
+            <div className="flex justify-end space-x-2 mt-2">
+                <button
+                    onClick={handleNoteEditorClose}
+                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={handleNoteEditorSave}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                >
+                    Save
+                </button>
+            </div>
+        </div>
+    );
+
   const VideoContentElement = (
     <VideoContent 
         videoRef={videoRef}
@@ -730,98 +828,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
             </div>
             {VideoContentElement}
             {showNoteEditor && (
-                <div
-                    className="fixed bg-slate-800 text-white p-4 rounded-lg shadow-2xl border border-indigo-500/30 z-50 w-80 cursor-grab active:cursor-grabbing"
-                    style={{
-                        top: noteEditorPosition?.y || 0,
-                        left: noteEditorPosition?.x || 0
-                    }}
-                >
-                    <div className="flex justify-between items-center mb-2 cursor-grab active:cursor-grabbing"
-                         onPointerDown={handleNoteEditorDragStart}
-                         onPointerUp={handleNoteEditorDragEnd}
-                         onPointerCancel={handleNoteEditorDragEnd}>
-                        <h3 className="text-lg font-semibold">Add Note</h3>
-                        <button
-                            data-drag-ignore="true"
-                            onClick={() => {
-                                setShowNoteEditor(false);
-                                setNoteText('');
-                                if (wasPlaying) togglePlay();
-                            }}
-                            className="text-white hover:text-gray-300 text-xl leading-none"
-                        >
-                            ×
-                        </button>
-                    </div>
-                    <p className="text-sm text-gray-300 mb-2">Timestamp: {formatTime(currentTime)}</p>
-                    <input
-                        type="text"
-                        value={noteTitle}
-                        onChange={(e) => setNoteTitle(e.target.value)}
-                        className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-2"
-                        placeholder="Enter note title..."
-                    />
-                    <div className="flex space-x-1 mb-2">
-                        <button onClick={() => insertFormat('**')} className="p-1 text-white hover:bg-slate-600 rounded" title="Bold">
-                            <Bold size={16} />
-                        </button>
-                        <button onClick={() => insertFormat('*')} className="p-1 text-white hover:bg-slate-600 rounded" title="Italic">
-                            <Italic size={16} />
-                        </button>
-                        <button onClick={() => insertFormat('<u>', '</u>')} className="p-1 text-white hover:bg-slate-600 rounded" title="Underline">
-                            <Underline size={16} />
-                        </button>
-                        <button onClick={() => insertFormat('- ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Unordered List">
-                            <List size={16} />
-                        </button>
-                        <button onClick={() => insertFormat('1. ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Ordered List">
-                            <ListOrdered size={16} />
-                        </button>
-                    </div>
-                    <textarea
-                        ref={textareaRef}
-                        value={noteText}
-                        onChange={(e) => setNoteText(e.target.value)}
-                        className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
-                        placeholder="Enter your note..."
-                    />
-                    <div className="flex justify-end space-x-2 mt-2">
-                        <button
-                            onClick={() => {
-                                setShowNoteEditor(false);
-                                setNoteText('');
-                                setNoteTitle('');
-                                if (wasPlaying) togglePlay();
-                            }}
-                            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (noteText.trim()) {
-                                    const newNote = {
-                                        id: Date.now().toString(),
-                                        title: noteTitle.trim(),
-                                        timestamp: currentTime,
-                                        content: noteText.trim(),
-                                        createdAt: new Date(),
-                                        courseId: '1', // Mock course ID - in a real app, this would come from current course context
-                                    };
-                                    addNote(newNote);
-                                }
-                                setShowNoteEditor(false);
-                                setNoteText('');
-                                setNoteTitle('');
-                                if (wasPlaying) togglePlay();
-                            }}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                        >
-                            Save
-                        </button>
-                    </div>
-                </div>
+                renderNoteEditor('fixed')
             )}
         </div>,
         mountNode
@@ -832,99 +839,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
       <div className={cn("w-full h-full", className)}>
           {VideoContentElement}
           {showNoteEditor && (
-              <div
-                  className="absolute bg-slate-800 text-white p-4 rounded-lg shadow-2xl border border-indigo-500/30 z-50 w-80 cursor-grab active:cursor-grabbing"
-                  style={{
-                      top: noteEditorPosition?.y || 0,
-                      left: noteEditorPosition?.x || 0
-                  }}
-              >
-                  <div className="flex justify-between items-center mb-2 cursor-grab active:cursor-grabbing"
-                       onPointerDown={handleNoteEditorDragStart}
-                       onPointerUp={handleNoteEditorDragEnd}
-                       onPointerCancel={handleNoteEditorDragEnd}>
-                      <h3 className="text-lg font-semibold">Add Note</h3>
-                      <button
-                          data-drag-ignore="true"
-                          onClick={() => {
-                              setShowNoteEditor(false);
-                              setNoteText('');
-                              setNoteTitle('');
-                              if (wasPlaying) togglePlay();
-                          }}
-                          className="text-white hover:text-gray-300 text-xl leading-none"
-                      >
-                          ×
-                      </button>
-                  </div>
-                  <p className="text-sm text-gray-300 mb-2">Timestamp: {formatTime(currentTime)}</p>
-                  <input
-                      type="text"
-                      value={noteTitle}
-                      onChange={(e) => setNoteTitle(e.target.value)}
-                      className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded mb-2"
-                      placeholder="Enter note title..."
-                  />
-                  <div className="flex space-x-1 mb-2">
-                      <button onClick={() => insertFormat('**')} className="p-1 text-white hover:bg-slate-600 rounded" title="Bold">
-                          <Bold size={16} />
-                      </button>
-                      <button onClick={() => insertFormat('*')} className="p-1 text-white hover:bg-slate-600 rounded" title="Italic">
-                          <Italic size={16} />
-                      </button>
-                      <button onClick={() => insertFormat('<u>', '</u>')} className="p-1 text-white hover:bg-slate-600 rounded" title="Underline">
-                          <Underline size={16} />
-                      </button>
-                      <button onClick={() => insertFormat('- ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Unordered List">
-                          <List size={16} />
-                      </button>
-                      <button onClick={() => insertFormat('1. ')} className="p-1 text-white hover:bg-slate-600 rounded" title="Ordered List">
-                          <ListOrdered size={16} />
-                      </button>
-                  </div>
-                  <textarea
-                      ref={textareaRef}
-                      value={noteText}
-                      onChange={(e) => setNoteText(e.target.value)}
-                      className="w-full h-24 p-2 bg-slate-700 text-white border border-slate-600 rounded resize-none"
-                      placeholder="Enter your note..."
-                  />
-                  <div className="flex justify-end space-x-2 mt-2">
-                      <button
-                          onClick={() => {
-                              setShowNoteEditor(false);
-                              setNoteText('');
-                              setNoteTitle('');
-                              if (wasPlaying) togglePlay();
-                          }}
-                          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                      >
-                          Cancel
-                      </button>
-                      <button
-                          onClick={() => {
-                              if (noteText.trim()) {
-                                  const newNote = {
-                                      id: Date.now().toString(),
-                                      title: noteTitle.trim(),
-                                      timestamp: currentTime,
-                                      content: noteText.trim(),
-                                      createdAt: new Date(),
-                                      courseId: '1', // Mock course ID - in a real app, this would come from current course context
-                                  };
-                                  addNote(newNote);
-                              }
-                              setShowNoteEditor(false);
-                              setNoteText('');
-                              setNoteTitle('');
-                              if (wasPlaying) togglePlay();
-                          }}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                      >
-                          Save
-                      </button>
-                  </div>
-              </div>
+              isFullscreen && containerRef.current
+                  ? createPortal(renderNoteEditor('fixed'), containerRef.current)
+                  : renderNoteEditor('absolute')
           )}
       </div>,
       mountNode
