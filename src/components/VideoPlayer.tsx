@@ -250,6 +250,7 @@ const VideoContent: React.FC<VideoContentProps> = ({
                                 step="1"
                                 value={Math.round(volume * 100)}
                                 onChange={(event) => onVolumeChange(Number(event.target.value) / 100)}
+                                onClick={(event) => event.stopPropagation()}
                                 onPointerDown={(event) => event.stopPropagation()}
                                 onKeyDown={(event) => event.stopPropagation()}
                                 className="w-20 sm:w-24 h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500"
