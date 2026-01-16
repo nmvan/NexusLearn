@@ -1,11 +1,14 @@
 import React, { useRef, useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Maximize2, Minimize2, PictureInPicture2, Play, Pause, Volume2, VolumeX, X, FileText, Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
+import { Maximize2, Minimize2, PictureInPicture2, Play, Pause, Volume2, VolumeX, X, FileText, Bold, Italic, Underline, List, ListOrdered, Captions, Settings, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useVideo } from '../context/VideoContext';
 import { useNotes } from '../context/NotesContext';
 import type { Note } from '../context/NotesContext';
+
+const QUALITY_OPTIONS = ['Auto', '1080p', '720p', '480p'] as const;
+const SUBTITLE_OPTIONS = ['Off', 'English', 'Vietnamese'] as const;
 
 interface VideoPlayerProps {
   src: string;
@@ -27,6 +30,17 @@ interface VideoContentProps {
   handleNoteTrigger: () => void;
   notes: Note[];
   duration: number;
+    currentTime: number;
+        volume: number;
+        onVolumeChange: (value: number) => void;
+        captionsEnabled: boolean;
+        onToggleCaptions: () => void;
+        qualityOptions: readonly string[];
+        selectedQuality: string;
+        onSelectQuality: (quality: string) => void;
+        subtitleOptions: readonly string[];
+        selectedSubtitle: string;
+        onSelectSubtitle: (subtitle: string) => void;
   toggleFullscreen: () => void;
     containerRef: React.RefObject<HTMLDivElement | null>;
     isFullscreen: boolean;
@@ -35,14 +49,20 @@ interface VideoContentProps {
 }
 
 const VideoContent: React.FC<VideoContentProps> = ({ 
-        videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger, notes, duration, toggleFullscreen, containerRef, isFullscreen, onMiniPlayerToggle, isMiniPlayerActive 
+                                videoRef, src, isPlaying, isMuted, handleTimeUpdate, togglePlay, toggleMute, progress, handleSeek, isPipMode, handleNoteTrigger, notes, duration, currentTime, volume, onVolumeChange, captionsEnabled, onToggleCaptions, qualityOptions, selectedQuality, onSelectQuality, subtitleOptions, selectedSubtitle, onSelectSubtitle, toggleFullscreen, containerRef, isFullscreen, onMiniPlayerToggle, isMiniPlayerActive 
 }) => {
-  const [hoveredNote, setHoveredNote] = useState<Note | null>(null);
-  const [tooltipLeft, setTooltipLeft] = useState(0);
-  const [tooltipTop, setTooltipTop] = useState(-80);
-  const tooltipRef = useRef<HTMLDivElement>(null);
+    const [hoveredNote, setHoveredNote] = useState<Note | null>(null);
+    const [tooltipLeft, setTooltipLeft] = useState(0);
+    const [tooltipTop, setTooltipTop] = useState(-80);
+    const tooltipRef = useRef<HTMLDivElement>(null);
+    const [isVolumeExpanded, setIsVolumeExpanded] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const settingsRef = useRef<HTMLDivElement | null>(null);
 
   const formatTime = (seconds: number) => {
+        if (!Number.isFinite(seconds) || seconds < 0) {
+            return '00:00';
+        }
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -58,6 +78,33 @@ const VideoContent: React.FC<VideoContentProps> = ({
       setTooltipTop(-80); // default
     }
   }, [hoveredNote]);
+
+    useEffect(() => {
+        if (!isSettingsOpen) {
+            return;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target as Node | null;
+            if (settingsRef.current && target && !settingsRef.current.contains(target)) {
+                setIsSettingsOpen(false);
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsSettingsOpen(false);
+            }
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('pointerdown', handlePointerDown);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [isSettingsOpen]);
 
     const [videoError, setVideoError] = useState<string | null>(null);
 
@@ -157,8 +204,8 @@ const VideoContent: React.FC<VideoContentProps> = ({
                 )}
             </div>
             
-            <div className="flex items-center justify-between pointer-events-auto">
-                <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-between pointer-events-auto gap-4">
+                <div className="flex items-center space-x-3 sm:space-x-4">
                     <button
                         onClick={(event) => {
                             event.stopPropagation();
@@ -169,16 +216,54 @@ const VideoContent: React.FC<VideoContentProps> = ({
                     >
                         {isPlaying ? <Pause size={20} /> : <Play size={20} />}
                     </button>
-                    <button
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            toggleMute();
-                        }}
-                        className="text-white hover:text-indigo-400 transition-colors"
+                    <div
+                        className="flex items-center space-x-2 sm:space-x-3"
                         data-drag-ignore="true"
+                        onMouseLeave={() => setIsVolumeExpanded(false)}
                     >
-                        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                    </button>
+                        <button
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                toggleMute();
+                            }}
+                            className="text-white hover:text-indigo-400 transition-colors"
+                            onMouseEnter={() => setIsVolumeExpanded(true)}
+                            onFocus={() => setIsVolumeExpanded(true)}
+                            onBlur={() => setIsVolumeExpanded(false)}
+                        >
+                            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </button>
+                        <div
+                            className={cn(
+                                "flex items-center overflow-hidden transition-all duration-200",
+                                isVolumeExpanded
+                                    ? "w-20 sm:w-24 opacity-100 pointer-events-auto"
+                                    : "w-0 opacity-0 pointer-events-none"
+                            )}
+                            onMouseEnter={() => setIsVolumeExpanded(true)}
+                            onFocus={() => setIsVolumeExpanded(true)}
+                        >
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={Math.round(volume * 100)}
+                                onChange={(event) => onVolumeChange(Number(event.target.value) / 100)}
+                                onPointerDown={(event) => event.stopPropagation()}
+                                onKeyDown={(event) => event.stopPropagation()}
+                                className="w-20 sm:w-24 h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                onBlur={() => setIsVolumeExpanded(false)}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex items-center text-white text-xs sm:text-sm font-mono tabular-nums whitespace-nowrap">
+                        {formatTime(currentTime)}
+                        <span className="mx-1 text-slate-400">/</span>
+                        {formatTime(duration)}
+                    </div>
+                </div>
+                <div className="flex items-center space-x-3">
                     <button
                         onClick={(event) => {
                             event.stopPropagation();
@@ -186,11 +271,83 @@ const VideoContent: React.FC<VideoContentProps> = ({
                         }}
                         className="text-white hover:text-indigo-400 transition-colors"
                         data-drag-ignore="true"
+                        title="Add note"
                     >
                         <FileText size={20} />
                     </button>
-                </div>
-                <div className="flex items-center space-x-3">
+                    <button
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onToggleCaptions();
+                        }}
+                        className={cn(
+                            "text-white hover:text-indigo-400 transition-colors",
+                            captionsEnabled && "text-indigo-400"
+                        )}
+                        data-drag-ignore="true"
+                        aria-pressed={captionsEnabled}
+                        title={captionsEnabled ? "Disable captions" : "Enable captions"}
+                    >
+                        <Captions size={20} />
+                    </button>
+                    <div
+                        ref={settingsRef}
+                        className="relative"
+                        data-drag-ignore="true"
+                    >
+                        <button
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setIsSettingsOpen((prev) => !prev);
+                            }}
+                            className={cn(
+                                "text-white hover:text-indigo-400 transition-colors",
+                                isSettingsOpen && "text-indigo-400"
+                            )}
+                            aria-expanded={isSettingsOpen}
+                            title="Playback settings"
+                        >
+                            <Settings size={20} />
+                        </button>
+                        {isSettingsOpen && (
+                            <div className="absolute bottom-12 right-0 w-56 rounded-xl border border-slate-700 bg-slate-900/95 text-white shadow-xl backdrop-blur-md p-4 space-y-4" onClick={(event) => event.stopPropagation()}>
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400 mb-2">Quality</p>
+                                    <div className="space-y-1">
+                                        {qualityOptions.map((option) => (
+                                            <button
+                                                key={option}
+                                                onClick={() => onSelectQuality(option)}
+                                                className={cn(
+                                                    "w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left hover:bg-slate-800 transition-colors",
+                                                    selectedQuality === option && "bg-indigo-500/20 text-indigo-200"
+                                                )}
+                                            >
+                                                <span>{option}</span>
+                                                {selectedQuality === option && <Check size={16} className="text-indigo-300" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Subtitles</p>
+                                    {subtitleOptions.map((option) => (
+                                        <button
+                                            key={option}
+                                            onClick={() => onSelectSubtitle(option)}
+                                            className={cn(
+                                                "w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left hover:bg-slate-800 transition-colors",
+                                                selectedSubtitle === option && "bg-indigo-500/20 text-indigo-200"
+                                            )}
+                                        >
+                                            <span>{option}</span>
+                                            {selectedSubtitle === option && <Check size={16} className="text-indigo-300" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <button
                         onClick={(event) => {
                             event.stopPropagation();
@@ -257,6 +414,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     const containerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+    const [volume, setVolume] = useState(1);
+    const [selectedQuality, setSelectedQuality] = useState<string>(QUALITY_OPTIONS[0]);
+    const [selectedSubtitle, setSelectedSubtitle] = useState<string>(SUBTITLE_OPTIONS[0]);
+    const lastSubtitleRef = useRef<string>(SUBTITLE_OPTIONS[1]);
   const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
   const [isPip, setIsPip] = useState(false);
     const [forceMiniPlayer, setForceMiniPlayer] = useState(false);
@@ -399,17 +560,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isPlaying, togglePlay]);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'f' || e.key === 'F') {
-                e.preventDefault();
-                toggleFullscreen();
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [toggleFullscreen]);
 
     const handlePointerMove = useCallback((event: PointerEvent) => {
         const info = dragInfoRef.current;
@@ -608,6 +758,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
       const video = videoRef.current;
       if (video) {
           registerVideoRef(videoRef);
+          video.volume = volume;
           if (!Number.isNaN(currentTime) && Math.abs(video.currentTime - currentTime) > 0.5) {
               video.currentTime = currentTime;
           }
@@ -615,7 +766,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
               video.play().catch(e => console.log("Autoplay prevented", e));
           }
       }
-  }, [mountNode, registerVideoRef, currentTime, isPlaying]); 
+  }, [mountNode, registerVideoRef, currentTime, isPlaying, volume]); 
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
@@ -632,6 +783,178 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
     seekTo(seekTime);
     setProgress(parseFloat(e.target.value));
   };
+
+    const syncTextTracks = useCallback((subtitle: string) => {
+        const video = videoRef.current;
+        if (!video || !video.textTracks) {
+            return;
+        }
+
+        for (let index = 0; index < video.textTracks.length; index += 1) {
+            const track = video.textTracks[index];
+            const shouldShow = subtitle !== 'Off' && track.label.toLowerCase() === subtitle.toLowerCase();
+            track.mode = shouldShow ? 'showing' : 'disabled';
+        }
+    }, []);
+
+    const handleVolumeChange = useCallback((next: number) => {
+        const clamped = Math.max(0, Math.min(1, next));
+        setVolume(clamped);
+        const video = videoRef.current;
+        if (video) {
+            video.volume = clamped;
+        }
+        if (clamped === 0 && !isMuted) {
+            toggleMute();
+            return;
+        }
+        if (clamped > 0 && isMuted) {
+            toggleMute();
+        }
+    }, [isMuted, toggleMute]);
+
+    const seekBy = useCallback((offsetSeconds: number) => {
+        const video = videoRef.current;
+        if (!video) {
+            return;
+        }
+
+        const durationValue = Number.isFinite(video.duration) ? video.duration : 0;
+        const proposedTime = video.currentTime + offsetSeconds;
+        const nextTime = durationValue > 0
+            ? Math.min(Math.max(0, proposedTime), durationValue)
+            : Math.max(0, proposedTime);
+
+        video.currentTime = nextTime;
+        seekTo(nextTime);
+        if (durationValue > 0) {
+            setProgress((nextTime / durationValue) * 100);
+        }
+    }, [seekTo]);
+
+    const adjustVolumeBy = useCallback((delta: number) => {
+        handleVolumeChange(volume + delta);
+    }, [handleVolumeChange, volume]);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) {
+            return;
+        }
+        if (video.volume !== volume) {
+            video.volume = volume;
+        }
+    }, [volume]);
+
+    useEffect(() => {
+        syncTextTracks(selectedSubtitle);
+    }, [selectedSubtitle, syncTextTracks]);
+
+    const handleSelectQuality = useCallback((quality: string) => {
+        setSelectedQuality(quality);
+        // Hook for adaptive streaming integration: switch manifests or bitrates here.
+    }, []);
+
+    const handleSelectSubtitle = useCallback((subtitle: string) => {
+        setSelectedSubtitle(subtitle);
+        if (subtitle !== 'Off') {
+            lastSubtitleRef.current = subtitle;
+        }
+    }, []);
+
+    const handleToggleCaptions = useCallback(() => {
+        setSelectedSubtitle((prev) => {
+            if (prev === 'Off') {
+                return lastSubtitleRef.current ?? SUBTITLE_OPTIONS[1];
+            }
+            lastSubtitleRef.current = prev;
+            return 'Off';
+        });
+    }, []);
+
+    useEffect(() => {
+        const handlePlaybackHotkeys = (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement | null;
+            if (target) {
+                const tagName = target.tagName;
+                const isFormElement = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tagName) || target.isContentEditable;
+                if (isFormElement) {
+                    return;
+                }
+            }
+
+            const key = event.key.length === 1 ? event.key.toLowerCase() : event.key.toLowerCase();
+
+            if (event.metaKey || event.altKey || event.ctrlKey) {
+                if (key !== 'f') {
+                    return;
+                }
+            }
+
+            switch (key) {
+                case ' ':
+                case 'spacebar':
+                case 'k':
+                    event.preventDefault();
+                    togglePlay();
+                    return;
+                case 'j':
+                    event.preventDefault();
+                    seekBy(-10);
+                    return;
+                case 'l':
+                    event.preventDefault();
+                    seekBy(10);
+                    return;
+                case 'arrowleft':
+                    event.preventDefault();
+                    seekBy(-5);
+                    return;
+                case 'arrowright':
+                    event.preventDefault();
+                    seekBy(5);
+                    return;
+                case 'arrowup':
+                    event.preventDefault();
+                    adjustVolumeBy(0.05);
+                    return;
+                case 'arrowdown':
+                    event.preventDefault();
+                    adjustVolumeBy(-0.05);
+                    return;
+                case 'm':
+                    event.preventDefault();
+                    toggleMute();
+                    return;
+                case 'f':
+                    event.preventDefault();
+                    toggleFullscreen();
+                    return;
+                case 'c':
+                    event.preventDefault();
+                    handleToggleCaptions();
+                    return;
+                default:
+                    break;
+            }
+
+            if (key >= '0' && key <= '9') {
+                const video = videoRef.current;
+                if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
+                    return;
+                }
+                const digit = Number(key);
+                event.preventDefault();
+                const newTime = video.duration * (digit / 10);
+                video.currentTime = newTime;
+                seekTo(newTime);
+                setProgress((newTime / video.duration) * 100);
+            }
+        };
+
+        window.addEventListener('keydown', handlePlaybackHotkeys);
+        return () => window.removeEventListener('keydown', handlePlaybackHotkeys);
+    }, [adjustVolumeBy, handleToggleCaptions, seekBy, seekTo, toggleFullscreen, toggleMute, togglePlay]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -678,6 +1001,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
         });
         handleNoteEditorClose();
     }, [addNote, currentTime, handleNoteEditorClose, noteText, noteTitle]);
+    const captionsEnabled = selectedSubtitle !== 'Off';
+
 
     const renderNoteEditor = (position: 'fixed' | 'absolute') => (
         <div
@@ -767,6 +1092,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className }) => {
                 handleNoteTrigger={handleNoteTrigger}
                 notes={notes}
                 duration={duration}
+                currentTime={currentTime}
+                volume={volume}
+                onVolumeChange={handleVolumeChange}
+                captionsEnabled={captionsEnabled}
+                onToggleCaptions={handleToggleCaptions}
+                qualityOptions={QUALITY_OPTIONS}
+                selectedQuality={selectedQuality}
+                onSelectQuality={handleSelectQuality}
+                subtitleOptions={SUBTITLE_OPTIONS}
+                selectedSubtitle={selectedSubtitle}
+                onSelectSubtitle={handleSelectSubtitle}
                 toggleFullscreen={toggleFullscreen}
                                 containerRef={containerRef}
                                 isFullscreen={isFullscreen}

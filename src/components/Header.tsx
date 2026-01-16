@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Search, Bell, User, LogOut, CreditCard, Settings, BookOpen, Play, Sun, Moon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -31,10 +31,38 @@ const inProgressCourses = [
 const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
+  const coursesMenuRef = useRef<HTMLDivElement | null>(null);
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const isLanding = location.pathname === '/';
+
+  useEffect(() => {
+    if (!isCoursesOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (coursesMenuRef.current && target && !coursesMenuRef.current.contains(target)) {
+        setIsCoursesOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsCoursesOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isCoursesOpen]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/50 backdrop-blur-xl supports-[backdrop-filter]:bg-white/50 dark:supports-[backdrop-filter]:bg-slate-950/50 transition-colors duration-300">
@@ -94,7 +122,7 @@ const Header = () => {
           </button>
 
           {/* Courses Dropdown */}
-          <div className="relative hidden md:block">
+          <div ref={coursesMenuRef} className="relative hidden md:block">
             <button 
               onClick={() => setIsCoursesOpen(!isCoursesOpen)}
               className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-cyan-400 transition-colors mr-2"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotes } from '../context/NotesContext';
 import { useCourses } from '../context/CourseContext';
@@ -15,6 +15,8 @@ export const NoteCentral: React.FC = () => {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
+  const knownNoteIds = useRef<Set<string>>(new Set());
+  const hasSyncedInitialNotes = useRef(false);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -56,6 +58,29 @@ export const NoteCentral: React.FC = () => {
       setSelectedNoteId(filteredNotes[0].id);
     }
   }, [filteredNotes, selectedNoteId]);
+
+  useEffect(() => {
+    if (!hasSyncedInitialNotes.current) {
+      knownNoteIds.current = new Set(notes.map(note => note.id));
+      hasSyncedInitialNotes.current = true;
+      return;
+    }
+
+    const previousIds = knownNoteIds.current;
+    const newNote = notes.find(note => !previousIds.has(note.id));
+
+    if (newNote) {
+      // Surface the latest note immediately so the My Notes view stays in sync.
+      setSelectedNoteId(newNote.id);
+      setExpandedCourses(prev => {
+        const updated = new Set(prev);
+        updated.add(newNote.courseId ?? 'uncategorized');
+        return updated;
+      });
+    }
+
+    knownNoteIds.current = new Set(notes.map(note => note.id));
+  }, [notes]);
 
   const selectedNote = notes.find(note => note.id === selectedNoteId);
 
